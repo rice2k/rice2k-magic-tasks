@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/
+*.spec
+release/
+*.zip
+*.exe
+*.sha256
+.venv/
+tasks.json

@@ -1,0 +1,4 @@
+pyinstaller>=6.15
+pystray>=0.19
+pillow>=11.0
+pytest>=8.3

@@ -17,11 +17,11 @@ import time
 import uuid
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from tkinter import Menu, PhotoImage, StringVar, Text, Tk, Toplevel, filedialog, messagebox
+from tkinter import Canvas, Menu, PhotoImage, StringVar, Text, Tk, Toplevel, filedialog, messagebox
 from tkinter import ttk
 
 APP_NAME = "Rice2k Magic Tasks"
-VERSION = "2.5.0"
+VERSION = "2.6.0"
 APP_DIR = Path(os.getenv("APPDATA", Path.home())) / "Rice2kMagicTasks"
 DATA_FILE = APP_DIR / "tasks.json"
 
@@ -33,6 +33,7 @@ def resource_path(relative_path: str) -> Path:
 
 ICON_PNG = resource_path("assets/rice2k_magic_tasks.png")
 ICON_ICO = resource_path("assets/rice2k_magic_tasks.ico")
+ACTION_ICON_DIR = resource_path("assets/actions")
 TASK_PLACEHOLDER = "Add new item..."
 
 
@@ -537,6 +538,42 @@ class SmartPlanner:
         return "Do one visible step that makes the task less stuck."
 
     @classmethod
+    def finish_line(cls, text: str) -> str:
+        category = cls.categorize(text)
+        if category == "Home":
+            return "The chosen area is usable enough to stop without guilt."
+        if category == "Work":
+            return "A useful update is saved, sent, or ready for the next person."
+        if category == "Health":
+            return "The caring action is done and the next reminder is captured."
+        if category == "Errands":
+            return "The item, call, pickup, or confirmation is handled."
+        if category == "Admin":
+            return "The form, payment, file, or proof is saved where you can find it."
+        if category == "School":
+            return "One answer, section, or study block is complete enough to review."
+        if category == "Creative":
+            return "A visible draft exists, even if it is not polished yet."
+        return "The task has one clear result or one clear next action."
+
+    @classmethod
+    def blocker_check(cls, text: str) -> str:
+        category = cls.categorize(text)
+        if category == "Work":
+            return "Check whether you need a file, decision, person, or deadline before going deep."
+        if category == "Errands":
+            return "Check hours, address, payment, and whether the item is actually available."
+        if category == "Admin":
+            return "Check login details, newest paperwork, account numbers, and proof before starting."
+        if category == "Health":
+            return "Check time, supplies, paperwork, travel, and any follow-up instructions."
+        if category == "School":
+            return "Check the instructions, rubric, due date, and what question you are answering."
+        if category == "Creative":
+            return "Check whether you are blocked by tools, references, or trying to polish too early."
+        return "Check whether the next step needs a tool, place, person, decision, or document."
+
+    @classmethod
     def preview(cls, text: str, due_date: str | None, spice: int) -> dict:
         steps = cls.breakdown(text, spice)
         return {
@@ -549,6 +586,8 @@ class SmartPlanner:
             "next_action": steps[0] if steps else clean_text(text),
             "coach_note": cls.coach_note(text, due_date),
             "minimum_win": cls.minimum_win(text),
+            "finish_line": cls.finish_line(text),
+            "blocker_check": cls.blocker_check(text),
         }
 
 
@@ -560,12 +599,15 @@ class MagicTasksApp:
         self.root.minsize(980, 620)
         self.root.protocol("WM_DELETE_WINDOW", self.hide_to_tray)
         self.app_icon_image = None
+        self.action_icons: dict[str, PhotoImage] = {}
         self.set_window_icon()
+        self.load_action_icons()
 
         self.data = self.load_data()
         self.active_list_id = self.data["lists"][0]["id"]
         self.current_view = "Tasks"
-        self.tree_item_map: dict[str, str] = {}
+        self.selected_task_id: str | None = None
+        self.task_card_widgets: dict[str, dict[str, ttk.Widget]] = {}
         self.reminder_seen: set[str] = set()
         self.focus_task_id: str | None = None
         self.focus_remaining = 0
@@ -638,6 +680,15 @@ class MagicTasksApp:
         except Exception:
             self.app_icon_image = None
 
+    def load_action_icons(self) -> None:
+        for name in ["check", "magic", "edit", "subtask", "estimate", "delete", "menu"]:
+            path = ACTION_ICON_DIR / f"{name}.png"
+            if path.exists():
+                try:
+                    self.action_icons[name] = PhotoImage(file=str(path)).subsample(3, 3)
+                except Exception:
+                    pass
+
     def colors(self) -> dict:
         return THEMES[normalize_theme_name(self.data["settings"].get("theme"))]
 
@@ -651,6 +702,9 @@ class MagicTasksApp:
         self.style.configure(".", background=display_bg, foreground=colors["text"], fieldbackground=colors["panel"], font=UI_FONT)
         self.style.configure("TFrame", background=display_bg)
         self.style.configure("Panel.TFrame", background=colors["panel"])
+        self.style.configure("TaskCard.TFrame", background=colors["panel"])
+        self.style.configure("SelectedTask.TFrame", background=colors["accent2"])
+        self.style.configure("DoneTask.TFrame", background=colors["done_bg"])
         self.style.configure("Hero.TFrame", background=colors["hero"])
         self.style.configure("CardOne.TFrame", background=colors["card1"])
         self.style.configure("CardTwo.TFrame", background=colors["card2"])
@@ -658,6 +712,12 @@ class MagicTasksApp:
         self.style.configure("TLabel", background=display_bg, foreground=colors["text"], font=UI_FONT)
         self.style.configure("Panel.TLabel", background=colors["panel"], foreground=colors["text"])
         self.style.configure("Muted.TLabel", background=colors["panel"], foreground=colors["muted"])
+        self.style.configure("TaskCard.TLabel", background=colors["panel"], foreground=colors["text"])
+        self.style.configure("SelectedTask.TLabel", background=colors["accent2"], foreground=colors["text"])
+        self.style.configure("DoneTask.TLabel", background=colors["done_bg"], foreground=colors["muted"])
+        self.style.configure("TaskMeta.TLabel", background=colors["panel"], foreground=colors["muted"], font=SMALL_FONT)
+        self.style.configure("SelectedMeta.TLabel", background=colors["accent2"], foreground=colors["muted"], font=SMALL_FONT)
+        self.style.configure("DoneMeta.TLabel", background=colors["done_bg"], foreground=colors["muted"], font=SMALL_FONT)
         self.style.configure("Hero.TLabel", background=colors["hero"], foreground=colors["hero_text"])
         self.style.configure("CardOne.TLabel", background=colors["card1"], foreground=colors["card_text"])
         self.style.configure("CardTwo.TLabel", background=colors["card2"], foreground=colors["card_text"])
@@ -742,6 +802,8 @@ class MagicTasksApp:
             [
                 f"Quick start: {plan['next_action']}",
                 f"Minimum win: {plan['minimum_win']}",
+                f"Done when: {plan['finish_line']}",
+                f"Watch for: {plan['blocker_check']}",
                 f"Coach note: {plan['coach_note']}",
             ]
         )
@@ -899,33 +961,18 @@ class MagicTasksApp:
         ttk.Combobox(details, textvariable=self.recurrence, values=RECURRENCE_OPTIONS, state="readonly", width=12).grid(row=1, column=2, sticky="ew", padx=(0, 8))
         ttk.Button(details, text="Templates", command=self.show_templates).grid(row=1, column=3, sticky="ew")
 
-        self.tree = ttk.Treeview(
-            page,
-            columns=("status", "due", "priority", "estimate", "category", "repeat"),
-            show="tree headings",
-            selectmode="browse",
-            height=13,
-        )
-        self.tree.heading("#0", text="To do")
-        self.tree.column("#0", width=640, anchor="w")
-        for col, title, width in [
-            ("due", "Due", 160),
-            ("estimate", "Estimate", 90),
-            ("status", "Status", 90),
-            ("priority", "Priority", 90),
-            ("category", "Category", 100),
-            ("repeat", "Repeats", 90),
-        ]:
-            self.tree.heading(col, text=title)
-            self.tree.column(col, width=width, anchor="w")
-        self.tree["displaycolumns"] = ("due", "estimate")
-        self.tree.pack(fill="both", expand=True)
-        colors = self.colors()
-        self.tree.tag_configure("high", background=colors["high_bg"], foreground=colors["text"])
-        self.tree.tag_configure("medium", background=colors["medium_bg"], foreground=colors["text"])
-        self.tree.tag_configure("done", background=colors["done_bg"], foreground=colors["muted"])
-        self.tree.bind("<Double-1>", lambda event: self.edit_selected())
-        self.tree.bind("<Button-3>", self.show_task_menu)
+        list_shell = self.panel(page, padding=0)
+        list_shell.pack(fill="both", expand=True)
+        self.task_canvas = Canvas(list_shell, highlightthickness=0, bg=self.colors()["panel"])
+        task_scroll = ttk.Scrollbar(list_shell, orient="vertical", command=self.task_canvas.yview)
+        self.task_canvas.configure(yscrollcommand=task_scroll.set)
+        self.task_list_frame = ttk.Frame(self.task_canvas, style="Panel.TFrame", padding=8)
+        self.task_canvas_window = self.task_canvas.create_window((0, 0), window=self.task_list_frame, anchor="nw")
+        self.task_canvas.pack(side="left", fill="both", expand=True)
+        task_scroll.pack(side="right", fill="y")
+        self.task_list_frame.bind("<Configure>", self.update_task_scroll_region)
+        self.task_canvas.bind("<Configure>", self.resize_task_canvas_window)
+        self.task_canvas.bind_all("<MouseWheel>", self.on_task_mousewheel)
         self.populate_task_tree()
 
         item_actions = ttk.Frame(page)
@@ -963,38 +1010,120 @@ class MagicTasksApp:
             self.task_entry.configure(foreground=self.colors()["muted"])
 
     def populate_task_tree(self) -> None:
-        self.tree_item_map = {}
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+        if not hasattr(self, "task_list_frame"):
+            return
+        self.task_card_widgets = {}
+        for child in self.task_list_frame.winfo_children():
+            child.destroy()
         for task in self.active_list().get("tasks", []):
-            iid = self.tree.insert("", "end", text=self.display_task_text(task), values=self.task_values(task), open=True, tags=(self.task_tag(task),))
-            self.tree_item_map[iid] = task["id"]
+            self.render_task_card(task, depth=0)
             for subtask in task.get("subtasks", []):
-                sid = self.tree.insert(iid, "end", text=self.display_task_text(subtask), values=self.task_values(subtask), open=True, tags=(self.task_tag(subtask),))
-                self.tree_item_map[sid] = subtask["id"]
+                self.render_task_card(subtask, depth=1)
+        if not self.active_list().get("tasks"):
+            empty = ttk.Frame(self.task_list_frame, style="Panel.TFrame", padding=22)
+            empty.pack(fill="x")
+            ttk.Label(empty, text="No tasks yet. Add one above and break it down when it feels too big.", style="Muted.TLabel", wraplength=720).pack(anchor="center")
 
-    def display_task_text(self, task: dict) -> str:
-        checkbox = "[x]" if task.get("completed") else "[ ]"
-        return f"{checkbox} {task['text']}"
-
-    def task_values(self, task: dict) -> tuple:
-        return (
-            "Done" if task.get("completed") else "Open",
-            due_label(task),
-            task.get("priority", "Normal"),
-            f"{task.get('estimate', 10)} min",
-            task.get("category", "General"),
-            task.get("recurrence", "None"),
-        )
-
-    def task_tag(self, task: dict) -> str:
+    def task_styles(self, task: dict, is_selected: bool) -> tuple[str, str, str]:
         if task.get("completed"):
-            return "done"
-        if task.get("priority") == "High":
-            return "high"
-        if task.get("priority") == "Medium":
-            return "medium"
-        return ""
+            return "DoneTask.TFrame", "DoneTask.TLabel", "DoneMeta.TLabel"
+        if is_selected:
+            return "SelectedTask.TFrame", "SelectedTask.TLabel", "SelectedMeta.TLabel"
+        return "TaskCard.TFrame", "TaskCard.TLabel", "TaskMeta.TLabel"
+
+    def render_task_card(self, task: dict, depth: int = 0) -> None:
+        is_selected = task["id"] == self.selected_task_id
+        frame_style, title_style, meta_style = self.task_styles(task, is_selected)
+        outer = ttk.Frame(self.task_list_frame, style="Panel.TFrame")
+        outer.pack(fill="x", padx=(depth * 28, 0), pady=5)
+        card = ttk.Frame(outer, style=frame_style, padding=(12, 10))
+        card.pack(fill="x")
+        self.bind_task_clicks(card, task["id"])
+
+        check_text = "[x]" if task.get("completed") else "[ ]"
+        check = ttk.Button(card, text=check_text, width=4, command=lambda tid=task["id"]: self.toggle_task_by_id(tid))
+        check.pack(side="left", padx=(0, 10))
+        check.bind("<Button-3>", lambda event, tid=task["id"]: self.show_task_menu(event, tid))
+
+        text_area = ttk.Frame(card, style=frame_style)
+        text_area.pack(side="left", fill="x", expand=True)
+        title = ttk.Label(text_area, text=task["text"], style=title_style, font=("Segoe UI", 13, "bold"), wraplength=620)
+        title.pack(anchor="w")
+        self.bind_task_clicks(text_area, task["id"])
+        self.bind_task_clicks(title, task["id"])
+        title.bind("<Double-1>", lambda event, tid=task["id"]: (self.select_task_card(tid), self.edit_selected()))
+        meta_parts = []
+        if due_label(task):
+            meta_parts.append(f"Due {due_label(task)}")
+        meta_parts.append(f"{task.get('estimate', 10)} min")
+        meta_parts.append(task.get("priority", "Normal"))
+        meta_parts.append(task.get("category", "General"))
+        meta = ttk.Label(text_area, text="  |  ".join(meta_parts), style=meta_style)
+        meta.pack(anchor="w", pady=(3, 0))
+        self.bind_task_clicks(meta, task["id"])
+
+        actions = ttk.Frame(card, style=frame_style)
+        actions.pack(side="right", padx=(10, 0))
+        for icon_name, text, command in [
+            ("magic", "Steps", lambda tid=task["id"]: self.run_task_action(tid, self.breakdown_selected)),
+            ("edit", "Edit", lambda tid=task["id"]: self.run_task_action(tid, self.edit_selected)),
+            ("subtask", "Subtask", lambda tid=task["id"]: self.run_task_action(tid, self.add_subtask_dialog)),
+            ("delete", "Delete", lambda tid=task["id"]: self.run_task_action(tid, self.delete_selected)),
+        ]:
+            button = self.icon_button(actions, icon_name, text, command)
+            button.bind("<Button-3>", lambda event, tid=task["id"]: self.show_task_menu(event, tid))
+            button.pack(side="left", padx=2)
+        self.bind_task_clicks(actions, task["id"])
+
+        self.task_card_widgets[task["id"]] = {
+            "card": card,
+            "text_area": text_area,
+            "title": title,
+            "meta": meta,
+            "actions": actions,
+        }
+
+    def bind_task_clicks(self, widget, task_id: str) -> None:
+        widget.bind("<Button-1>", lambda event, tid=task_id: self.select_task_card(tid))
+        widget.bind("<Button-3>", lambda event, tid=task_id: self.show_task_menu(event, tid))
+
+    def icon_button(self, parent, icon_name: str, text: str, command):
+        icon = self.action_icons.get(icon_name)
+        if icon:
+            return ttk.Button(parent, text=text, image=icon, compound="left", command=command)
+        return ttk.Button(parent, text=text, command=command)
+
+    def select_task_card(self, task_id: str) -> None:
+        self.selected_task_id = task_id
+        for current_id, widgets in self.task_card_widgets.items():
+            task, _, _ = self.find_task(current_id)
+            if not task:
+                continue
+            frame_style, title_style, meta_style = self.task_styles(task, current_id == task_id)
+            for key in ["card", "text_area", "actions"]:
+                widgets[key].configure(style=frame_style)
+            widgets["title"].configure(style=title_style)
+            widgets["meta"].configure(style=meta_style)
+
+    def run_task_action(self, task_id: str, action) -> None:
+        self.selected_task_id = task_id
+        action()
+
+    def toggle_task_by_id(self, task_id: str) -> None:
+        self.selected_task_id = task_id
+        self.toggle_selected_complete()
+
+    def update_task_scroll_region(self, _event=None) -> None:
+        if hasattr(self, "task_canvas"):
+            self.task_canvas.configure(scrollregion=self.task_canvas.bbox("all"))
+
+    def resize_task_canvas_window(self, event) -> None:
+        if hasattr(self, "task_canvas"):
+            self.task_canvas.itemconfigure(self.task_canvas_window, width=event.width)
+
+    def on_task_mousewheel(self, event) -> None:
+        if hasattr(self, "task_canvas") and self.current_view == "Tasks":
+            self.task_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def on_list_selected(self, _event=None) -> None:
         selected = self.list_var.get()
@@ -1002,6 +1131,7 @@ class MagicTasksApp:
             if task_list["name"] == selected:
                 self.active_list_id = task_list["id"]
                 break
+        self.selected_task_id = None
         self.show_tasks()
 
     def add_task(self) -> None:
@@ -1024,30 +1154,32 @@ class MagicTasksApp:
             self.task_entry.focus_set()
 
     def selected_task(self) -> tuple[dict | None, dict | None, dict | None]:
-        selected = self.tree.selection() if hasattr(self, "tree") else ()
-        if not selected:
+        if not self.selected_task_id:
             return None, None, None
-        task_id = self.tree_item_map.get(selected[0])
-        if not task_id:
-            return None, None, None
-        return self.find_task(task_id)
+        return self.find_task(self.selected_task_id)
 
-    def show_task_menu(self, event) -> None:
-        item = self.tree.identify_row(event.y)
-        if item:
-            self.tree.selection_set(item)
+    def show_task_menu(self, event, task_id: str | None = None) -> None:
+        if task_id:
+            self.selected_task_id = task_id
         menu = Menu(self.root, tearoff=False)
-        for label, command in [
-            ("Edit", self.edit_selected),
-            ("Duplicate", self.duplicate_selected),
-            ("Add Subtask", self.add_subtask_dialog),
-            ("Make Easier", self.rewrite_selected),
-            ("Add Steps", self.breakdown_selected),
-            ("Start Focus", self.focus_selected),
-            ("Complete", self.toggle_selected_complete),
-            ("Delete", self.delete_selected),
+        for label, icon, command in [
+            ("Complete / reopen", "check", self.toggle_selected_complete),
+            ("Break down into steps", "magic", self.breakdown_selected),
+            ("Make easier", "magic", self.rewrite_selected),
+            ("Edit", "edit", self.edit_selected),
+            ("Add subtask", "subtask", self.add_subtask_dialog),
+            ("Estimate", "estimate", self.estimate_selected_task),
+            ("Duplicate", "subtask", self.duplicate_selected),
+            ("Move up", "menu", lambda: self.move_selected(-1)),
+            ("Move down", "menu", lambda: self.move_selected(1)),
+            ("Start Focus", "check", self.focus_selected),
+            ("Delete", "delete", self.delete_selected),
         ]:
-            menu.add_command(label=label, command=command)
+            icon_image = self.action_icons.get(icon)
+            if icon_image:
+                menu.add_command(label=label, image=icon_image, compound="left", command=command)
+            else:
+                menu.add_command(label=label, command=command)
         menu.tk_popup(event.x_root, event.y_root)
 
     def toggle_selected_complete(self) -> None:
@@ -1093,6 +1225,8 @@ class MagicTasksApp:
                 f"Made easier from: {previous}",
                 f"Quick start: {plan['next_action']}",
                 f"Minimum win: {plan['minimum_win']}",
+                f"Done when: {plan['finish_line']}",
+                f"Watch for: {plan['blocker_check']}",
                 f"Coach note: {plan['coach_note']}",
             ]
         )
@@ -1142,6 +1276,7 @@ class MagicTasksApp:
             parent["subtasks"] = [item for item in parent.get("subtasks", []) if item["id"] != task["id"]]
         else:
             task_list["tasks"] = [item for item in task_list.get("tasks", []) if item["id"] != task["id"]]
+        self.selected_task_id = None
         self.save_data()
         self.populate_task_tree()
 
@@ -1257,6 +1392,14 @@ class MagicTasksApp:
         self.save_data()
         self.populate_task_tree()
 
+    def estimate_selected_task(self) -> None:
+        task, _, _ = self.selected_task()
+        if not task:
+            return
+        self.refresh_task_planning(task)
+        self.save_data()
+        self.populate_task_tree()
+
     def prioritize_current_list(self) -> None:
         priority_order = {"High": 0, "Medium": 1, "Normal": 2}
         for task in self.active_list().get("tasks", []):
@@ -1306,6 +1449,7 @@ class MagicTasksApp:
         current = self.active_list()
         current["name"] = clean_text(loaded.get("name", current["name"])) or current["name"]
         current["tasks"] = [self.normalize_loaded_task(task) for task in loaded.get("tasks", []) if isinstance(task, dict)]
+        self.selected_task_id = None
         self.save_data()
         self.show_tasks()
 
@@ -1361,6 +1505,7 @@ class MagicTasksApp:
             return kept
 
         self.active_list()["tasks"] = keep_open(self.active_list().get("tasks", []))
+        self.selected_task_id = None
         self.save_data()
         self.populate_task_tree()
 

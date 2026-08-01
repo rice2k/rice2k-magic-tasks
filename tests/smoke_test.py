@@ -43,3 +43,5 @@ def test_old_theme_names_migrate():
 def test_icon_assets_exist():
     assert ICON_PNG.exists()
     assert ICON_ICO.exists()
+    assert (ROOT / "assets" / "actions" / "magic.png").exists()
+    assert (ROOT / "assets" / "actions" / "edit.png").exists()

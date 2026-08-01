@@ -2,7 +2,7 @@
 
 Rice2k Magic Tasks is a Windows-first task planner for turning rough ideas into smaller, calmer next actions. It runs locally, saves your lists on your computer, and includes smart planning tools for due dates, recurring tasks, reminders, focus sessions, templates, calendar views, and low-distraction themes.
 
-![Version](https://img.shields.io/badge/version-2.5.0-3366ee)
+![Version](https://img.shields.io/badge/version-2.6.0-3366ee)
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -10,12 +10,12 @@ Rice2k Magic Tasks is a Windows-first task planner for turning rough ideas into 
 
 Get the latest Windows build from the [Releases](../../releases) page.
 
-The v2.5.0 release includes:
+The v2.6.0 release includes:
 
-- `Rice2k-Magic-Tasks-v2.5.0.exe` - single-file Windows app
-- `Rice2k-Magic-Tasks-v2.5.0.zip` - release package
-- `Rice2k-Magic-Tasks-v2.5.0.sha256` - checksum file
-- `Rice2k-Magic-Tasks-Source-v2.5.0.zip` - source archive
+- `Rice2k-Magic-Tasks-v2.6.0.exe` - single-file Windows app
+- `Rice2k-Magic-Tasks-v2.6.0.zip` - release package
+- `Rice2k-Magic-Tasks-v2.6.0.sha256` - checksum file
+- `Rice2k-Magic-Tasks-Source-v2.6.0.zip` - source archive
 
 ## Features
 
@@ -25,7 +25,7 @@ The v2.5.0 release includes:
 - Breaks tasks into smaller steps.
 - Estimates task size in minutes.
 - Adds categories, energy levels, and priority hints.
-- Adds quick-start, minimum-win, and coaching notes to new tasks.
+- Adds quick-start, minimum-win, done-when, blocker, and coaching notes to new tasks.
 - Keeps the planning engine local and private.
 
 ### Task management
@@ -33,7 +33,9 @@ The v2.5.0 release includes:
 - Multiple named task lists.
 - Nested subtasks.
 - Completion tracking.
-- Right-click menu with edit, duplicate, subtask, rewrite, breakdown, focus, complete, and delete actions.
+- Large clickable task cards with checkbox controls and icon action buttons.
+- Right-click menu with complete, breakdown, simplify, edit, subtask, estimate, duplicate, move, focus, and delete actions.
+- Built-in planner notes that explain the finish line and common blockers for vague tasks.
 - Manual task editing with notes, due date, due time, reminder timing, and recurrence.
 - Move tasks up or down inside a list.
 
@@ -66,7 +68,7 @@ The v2.5.0 release includes:
 
 ### Themes
 
-Settings preview themes immediately before you save. v2.5.0 keeps the theme list focused to four readable choices:
+Settings preview themes immediately before you save. v2.6.0 keeps the theme list focused to four readable choices:
 
 Included themes:
 
@@ -135,7 +137,7 @@ No account is required. The app does not upload task data by default.
 After downloading the EXE or ZIP, compare its SHA-256 hash with the release checksum file.
 
 ```powershell
-Get-FileHash .\Rice2k-Magic-Tasks-v2.5.0.exe -Algorithm SHA256
+Get-FileHash .\Rice2k-Magic-Tasks-v2.6.0.exe -Algorithm SHA256
 ```
 
 ## Project Layout

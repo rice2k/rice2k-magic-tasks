@@ -17,97 +17,101 @@ import time
 import uuid
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from tkinter import Menu, StringVar, Text, Tk, Toplevel, messagebox
+from tkinter import Menu, PhotoImage, StringVar, Text, Tk, Toplevel, messagebox
 from tkinter import ttk
 
 APP_NAME = "Rice2k Magic Tasks"
-VERSION = "2.2.0"
+VERSION = "2.3.0"
 APP_DIR = Path(os.getenv("APPDATA", Path.home())) / "Rice2kMagicTasks"
 DATA_FILE = APP_DIR / "tasks.json"
 
 
+def resource_path(relative_path: str) -> Path:
+    base_path = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1]))
+    return base_path / relative_path
+
+
+ICON_PNG = resource_path("assets/rice2k_magic_tasks.png")
+ICON_ICO = resource_path("assets/rice2k_magic_tasks.ico")
+
+
 THEMES = {
-    "Light": {
-        "bg": "#f6f7fb",
+    "Candy Pop": {
+        "bg": "#fff1fb",
         "panel": "#ffffff",
-        "panel2": "#edf0f7",
-        "text": "#1b1f2a",
-        "muted": "#5f6878",
-        "accent": "#3366ff",
-        "accent2": "#e6ecff",
-        "danger": "#bf2f45",
-        "done": "#1d8f62",
+        "panel2": "#ffe1f2",
+        "card1": "#ff5aa5",
+        "card2": "#ffc83d",
+        "card3": "#24d6bf",
+        "text": "#2a1741",
+        "muted": "#73506f",
+        "accent": "#ff3d95",
+        "accent2": "#ffca3a",
+        "accent3": "#22cfc0",
+        "danger": "#d92760",
+        "done": "#138a6d",
+        "button_text": "#ffffff",
+        "hero": "#6c5ce7",
+        "hero_text": "#ffffff",
     },
-    "Dark": {
-        "bg": "#141821",
-        "panel": "#1d2330",
-        "panel2": "#262e3f",
-        "text": "#f3f6fb",
-        "muted": "#aeb8c8",
-        "accent": "#79a7ff",
-        "accent2": "#223453",
-        "danger": "#ff6b83",
-        "done": "#70e0a3",
+    "Ocean Glow": {
+        "bg": "#eafcff",
+        "panel": "#ffffff",
+        "panel2": "#d8f6ff",
+        "card1": "#00a6fb",
+        "card2": "#ff7a59",
+        "card3": "#00c48c",
+        "text": "#102a35",
+        "muted": "#4b6974",
+        "accent": "#0077b6",
+        "accent2": "#ff7a59",
+        "accent3": "#00c48c",
+        "danger": "#c73b5b",
+        "done": "#008060",
+        "button_text": "#ffffff",
+        "hero": "#023e8a",
+        "hero_text": "#ffffff",
     },
-    "Low Stimulation": {
-        "bg": "#f2f3ef",
-        "panel": "#fbfbf7",
-        "panel2": "#e5e8df",
-        "text": "#252820",
-        "muted": "#687060",
-        "accent": "#5d7561",
-        "accent2": "#e1e8dc",
-        "danger": "#9a4d4d",
-        "done": "#4c7d55",
-    },
-    "Focus Contrast": {
-        "bg": "#101215",
-        "panel": "#f7f7f2",
-        "panel2": "#deded7",
-        "text": "#111318",
-        "muted": "#333942",
-        "accent": "#005fcc",
-        "accent2": "#cfe2ff",
-        "danger": "#a8182f",
-        "done": "#006f45",
-    },
-    "Soft Pastel": {
-        "bg": "#f7f1f5",
-        "panel": "#fffafb",
-        "panel2": "#efe4ee",
-        "text": "#30252f",
-        "muted": "#7a6778",
-        "accent": "#7d6bc7",
-        "accent2": "#ece8ff",
-        "danger": "#bc536d",
-        "done": "#4e936b",
+    "Sunset Arcade": {
+        "bg": "#211631",
+        "panel": "#2e2145",
+        "panel2": "#3b2a59",
+        "card1": "#ff6b6b",
+        "card2": "#ffd166",
+        "card3": "#4cc9f0",
+        "text": "#fff8ea",
+        "muted": "#d7c7e8",
+        "accent": "#ff8a3d",
+        "accent2": "#4cc9f0",
+        "accent3": "#f72585",
+        "danger": "#ff5d73",
+        "done": "#80ffdb",
+        "button_text": "#20152d",
+        "hero": "#7209b7",
+        "hero_text": "#fff8ea",
     },
     "Black & Green": {
         "bg": "#020603",
         "panel": "#071208",
         "panel2": "#0e2713",
+        "card1": "#18ff65",
+        "card2": "#c9ff28",
+        "card3": "#00d09c",
         "text": "#e7ffe7",
         "muted": "#91be91",
         "accent": "#18ff65",
-        "accent2": "#123e1d",
+        "accent2": "#c9ff28",
+        "accent3": "#00d09c",
         "danger": "#ff5d73",
         "done": "#35f482",
-    },
-    "Clean Blue": {
-        "bg": "#eef5f8",
-        "panel": "#ffffff",
-        "panel2": "#dbe9ee",
-        "text": "#17272e",
-        "muted": "#58707a",
-        "accent": "#06758f",
-        "accent2": "#d8f2f8",
-        "danger": "#b83a52",
-        "done": "#277b59",
+        "button_text": "#001905",
+        "hero": "#0a3d18",
+        "hero_text": "#e7ffe7",
     },
 }
 
 DEFAULT_SETTINGS = {
-    "theme": "Light",
+    "theme": "Candy Pop",
     "compact_rows": False,
     "reduced_motion": False,
     "plain_background": False,
@@ -250,11 +254,13 @@ def next_recurrence_date(current: date, recurrence: str) -> date | None:
 
 class SmartPlanner:
     category_words = {
-        "Home": ["clean", "laundry", "dish", "kitchen", "room", "trash", "house"],
-        "Work": ["email", "report", "meeting", "client", "project", "code", "invoice"],
-        "Health": ["doctor", "medicine", "exercise", "walk", "sleep", "appointment"],
-        "Errands": ["buy", "store", "pickup", "call", "mail", "bank", "shop"],
-        "Admin": ["form", "file", "paper", "budget", "tax", "bill", "account"],
+        "Home": ["clean", "laundry", "dish", "kitchen", "room", "trash", "house", "closet", "garage", "bed"],
+        "Work": ["email", "report", "meeting", "client", "project", "code", "invoice", "presentation", "manager"],
+        "Health": ["doctor", "medicine", "exercise", "walk", "sleep", "appointment", "therapy", "meal", "water"],
+        "Errands": ["buy", "store", "pickup", "call", "mail", "bank", "shop", "return", "post office"],
+        "Admin": ["form", "file", "paper", "budget", "tax", "bill", "account", "renew", "password"],
+        "School": ["study", "homework", "assignment", "class", "teacher", "exam", "quiz", "essay"],
+        "Creative": ["draw", "write", "record", "music", "video", "design", "photo", "paint"],
     }
 
     starters = (
@@ -285,29 +291,36 @@ class SmartPlanner:
     @classmethod
     def energy(cls, text: str) -> str:
         lower = text.lower()
-        if any(word in lower for word in ["call", "meeting", "doctor", "deadline", "deep"]):
+        if any(word in lower for word in ["call", "meeting", "doctor", "deadline", "deep", "presentation", "tax"]):
             return "High"
-        if any(word in lower for word in ["read", "sort", "check", "list", "collect"]):
+        if any(word in lower for word in ["read", "sort", "check", "list", "collect", "water", "trash"]):
             return "Low"
         return "Medium"
 
     @classmethod
     def estimate(cls, text: str, spice: int = 3) -> int:
+        lower = text.lower()
         words = max(3, len(text.split()))
-        base = 10 + words * 2
-        if any(word in text.lower() for word in ["project", "house", "report", "tax", "plan"]):
-            base += 20
-        return min(240, max(5, base + (spice - 3) * 10))
+        base = 8 + words * 3
+        if any(word in lower for word in ["project", "house", "report", "tax", "plan", "presentation", "essay"]):
+            base += 25
+        if any(word in lower for word in ["quick", "text", "water", "trash", "check"]):
+            base -= 8
+        if any(word in lower for word in ["organize", "research", "deep", "budget", "clean"]):
+            base += 12
+        return min(240, max(5, base + (spice - 3) * 8))
 
     @classmethod
     def priority(cls, text: str, due_date: str | None = None) -> str:
         lower = text.lower()
         due = parse_date(due_date)
-        if any(word in lower for word in ["urgent", "asap", "deadline", "today"]):
+        if any(word in lower for word in ["urgent", "asap", "deadline", "today", "tonight", "overdue"]):
             return "High"
         if due and due <= date.today() + timedelta(days=1):
             return "High"
         if due and due <= date.today() + timedelta(days=7):
+            return "Medium"
+        if any(word in lower for word in ["soon", "this week", "tomorrow", "important"]):
             return "Medium"
         return "Normal"
 
@@ -316,22 +329,37 @@ class SmartPlanner:
         text = clean_text(text)
         if not text:
             return text
-        lower = text.lower()
+        lower = text.lower().strip(" .!?")
         replacements = [
-            ("clean house", "Reset the house one small area at a time"),
-            ("clean room", "Clear and reset the room one surface at a time"),
+            ("clean house", "Reset one small area of the house"),
+            ("clean room", "Clear and reset one surface in the room"),
             ("do laundry", "Run one complete laundry cycle"),
-            ("work on project", "Move the project forward with one finished step"),
+            ("laundry", "Run one complete laundry cycle"),
+            ("dishes", "Clear the dishes from the sink or counter"),
+            ("work on project", "Finish one useful piece of the project"),
             ("get organized", "Sort the loose items into keep, move, and trash piles"),
-            ("emails", "Clear the most important email actions"),
+            ("emails", "Clear the most important email action"),
+            ("email", "Handle the most important email action"),
             ("make appointment", "Schedule the appointment and save the details"),
+            ("study", "Study one focused section and capture what is still confusing"),
+            ("budget", "Update the budget and flag the next money decision"),
+            ("pack", "Pack the essentials first, then add nice-to-have items"),
         ]
         for needle, replacement in replacements:
             if needle in lower:
                 return replacement
         if lower.startswith(cls.starters):
             return text[0].upper() + text[1:]
-        return f"Start: {text[0].lower() + text[1:]}"
+        category = cls.categorize(text)
+        if category == "Home":
+            return f"Reset one visible part of: {text[0].lower() + text[1:]}"
+        if category == "Work":
+            return f"Move this work forward: {text[0].lower() + text[1:]}"
+        if category == "School":
+            return f"Make one clear study step for: {text[0].lower() + text[1:]}"
+        if category == "Creative":
+            return f"Create a rough first pass of: {text[0].lower() + text[1:]}"
+        return f"Start with one small action for: {text[0].lower() + text[1:]}"
 
     @classmethod
     def breakdown(cls, text: str, spice: int = 3) -> list[str]:
@@ -340,20 +368,25 @@ class SmartPlanner:
         category = cls.categorize(text)
         first = cls.rewrite(text)
         general = [
-            f"Define what done means for: {text}",
-            "Gather anything needed",
-            "Do the smallest first action",
-            "Check what remains",
-            "Finish, save, or clean up",
+            "Name the finished result in one sentence",
+            "Clear a two-minute starter space",
+            "Gather the one thing needed to begin",
+            "Do the smallest visible action",
+            "Check what changed",
+            "Handle one blocker or decide who to ask",
+            "Finish, save, or reset the area",
+            "Write the next follow-up if one remains",
         ]
         if category == "Home":
             general = [
-                "Pick one visible area",
+                "Pick the smallest visible area",
                 "Remove trash and obvious clutter",
                 "Group items by where they belong",
                 "Put away the easiest group",
-                "Wipe or reset the main surface",
+                "Reset one surface so progress is visible",
+                "Start one timer if the task can keep going",
                 "Stop when the chosen area is usable",
+                "Write the next room or surface for later",
             ]
         elif category == "Work":
             general = [
@@ -363,6 +396,7 @@ class SmartPlanner:
                 "Complete the first deliverable chunk",
                 "Review for one obvious problem",
                 "Send or save the update",
+                "Create a follow-up task for anything blocked",
             ]
         elif category == "Health":
             general = [
@@ -371,6 +405,7 @@ class SmartPlanner:
                 "Set a reminder or travel time",
                 "Do the next physical action",
                 "Record what was done",
+                "Schedule the next check-in if needed",
             ]
         elif category == "Errands":
             general = [
@@ -379,6 +414,34 @@ class SmartPlanner:
                 "Prepare payment, bag, or documents",
                 "Complete the errand",
                 "Put away or record the result",
+                "Save receipts or confirmation numbers",
+            ]
+        elif category == "Admin":
+            general = [
+                "Open the account, form, or folder",
+                "Find the newest document or notice",
+                "Write down the exact decision needed",
+                "Complete the required field, payment, or upload",
+                "Save proof or a confirmation number",
+                "Set a follow-up reminder if there is a wait",
+            ]
+        elif category == "School":
+            general = [
+                "Open the assignment, notes, or study material",
+                "Circle the exact question or section",
+                "Work for one short focus block",
+                "Write a rough answer before polishing",
+                "Check instructions against the work",
+                "Submit, save, or list what still needs help",
+            ]
+        elif category == "Creative":
+            general = [
+                "Open the blank file, page, or tool",
+                "Make a rough version without judging it",
+                "Pick one part to improve",
+                "Save a version before changing more",
+                "Add one finishing detail",
+                "Write the next creative step",
             ]
         if "email" in lower:
             general = [
@@ -386,21 +449,38 @@ class SmartPlanner:
                 "Search for the important thread",
                 "Decide: reply, archive, schedule, or task",
                 "Write the shortest useful response",
+                "Add one clear next action if needed",
                 "Send or save the draft",
             ]
         steps = [first] + general
-        count = min(len(steps), max(3, spice + 3))
+        count_by_spice = {1: 3, 2: 4, 3: 5, 4: 7, 5: 9}
+        count = min(len(steps), count_by_spice.get(max(1, min(5, spice)), 5))
         return steps[:count]
 
     @classmethod
+    def coach_note(cls, text: str, due_date: str | None = None) -> str:
+        priority = cls.priority(text, due_date)
+        energy = cls.energy(text)
+        if priority == "High":
+            return "Start with the first visible action, then decide what can wait."
+        if energy == "Low":
+            return "This is a good low-energy task. Let the tiny first step count."
+        if energy == "High":
+            return "Make the start smaller than your brain thinks it should be."
+        return "Aim for progress, not a perfect plan."
+
+    @classmethod
     def preview(cls, text: str, due_date: str | None, spice: int) -> dict:
+        steps = cls.breakdown(text, spice)
         return {
             "rewrite": cls.rewrite(text),
             "category": cls.categorize(text),
             "energy": cls.energy(text),
             "estimate": cls.estimate(text, spice),
             "priority": cls.priority(text, due_date),
-            "steps": cls.breakdown(text, spice),
+            "steps": steps,
+            "next_action": steps[0] if steps else clean_text(text),
+            "coach_note": cls.coach_note(text, due_date),
         }
 
 
@@ -411,6 +491,8 @@ class MagicTasksApp:
         self.root.geometry("1180x760")
         self.root.minsize(980, 620)
         self.root.protocol("WM_DELETE_WINDOW", self.hide_to_tray)
+        self.app_icon_image = None
+        self.set_window_icon()
 
         self.data = self.load_data()
         self.active_list_id = self.data["lists"][0]["id"]
@@ -459,6 +541,8 @@ class MagicTasksApp:
             data["lists"] = default_data()["lists"]
         for key, value in DEFAULT_SETTINGS.items():
             data["settings"].setdefault(key, value)
+        if data["settings"].get("theme") not in THEMES:
+            data["settings"]["theme"] = DEFAULT_SETTINGS["theme"]
         return data
 
     def save_payload(self, payload: dict) -> None:
@@ -476,10 +560,22 @@ class MagicTasksApp:
         except Exception:
             pass
 
+    def set_window_icon(self) -> None:
+        try:
+            if ICON_ICO.exists():
+                self.root.iconbitmap(str(ICON_ICO))
+            if ICON_PNG.exists():
+                self.app_icon_image = PhotoImage(file=str(ICON_PNG))
+                self.root.iconphoto(True, self.app_icon_image)
+        except Exception:
+            self.app_icon_image = None
+
     def colors(self) -> dict:
-        return THEMES.get(self.data["settings"].get("theme", "Light"), THEMES["Light"])
+        return THEMES.get(self.data["settings"].get("theme", DEFAULT_SETTINGS["theme"]), THEMES[DEFAULT_SETTINGS["theme"]])
 
     def apply_theme(self, theme_name: str) -> None:
+        if theme_name not in THEMES:
+            theme_name = DEFAULT_SETTINGS["theme"]
         self.data["settings"]["theme"] = theme_name
         colors = self.colors()
         row_height = 24 if self.data["settings"].get("compact_rows") else 32
@@ -487,13 +583,23 @@ class MagicTasksApp:
         self.style.configure(".", background=colors["bg"], foreground=colors["text"], fieldbackground=colors["panel"])
         self.style.configure("TFrame", background=colors["bg"])
         self.style.configure("Panel.TFrame", background=colors["panel"])
+        self.style.configure("Hero.TFrame", background=colors["hero"])
+        self.style.configure("CardOne.TFrame", background=colors["card1"])
+        self.style.configure("CardTwo.TFrame", background=colors["card2"])
+        self.style.configure("CardThree.TFrame", background=colors["card3"])
         self.style.configure("TLabel", background=colors["bg"], foreground=colors["text"])
         self.style.configure("Panel.TLabel", background=colors["panel"], foreground=colors["text"])
         self.style.configure("Muted.TLabel", background=colors["panel"], foreground=colors["muted"])
+        self.style.configure("Hero.TLabel", background=colors["hero"], foreground=colors["hero_text"])
+        self.style.configure("CardOne.TLabel", background=colors["card1"], foreground=colors["button_text"])
+        self.style.configure("CardTwo.TLabel", background=colors["card2"], foreground=colors["text"])
+        self.style.configure("CardThree.TLabel", background=colors["card3"], foreground=colors["text"])
         self.style.configure("Title.TLabel", background=colors["bg"], foreground=colors["text"], font=("Segoe UI", 18, "bold"))
-        self.style.configure("Accent.TButton", background=colors["accent"], foreground=colors["text"])
-        self.style.configure("TButton", padding=6)
-        self.style.map("TButton", background=[("active", colors["accent2"])])
+        self.style.configure("AppTitle.TLabel", background=colors["hero"], foreground=colors["hero_text"], font=("Segoe UI", 20, "bold"))
+        self.style.configure("Accent.TButton", background=colors["accent"], foreground=colors["button_text"], padding=7)
+        self.style.configure("TButton", padding=6, background=colors["panel2"], foreground=colors["text"])
+        self.style.configure("Nav.TButton", padding=7, background=colors["accent"], foreground=colors["button_text"])
+        self.style.map("TButton", background=[("active", colors["accent2"])], foreground=[("active", colors["text"])])
         self.style.configure("TEntry", fieldbackground=colors["panel"], foreground=colors["text"])
         self.style.configure("TCombobox", fieldbackground=colors["panel"], foreground=colors["text"])
         self.style.configure("Treeview", rowheight=row_height, fieldbackground=colors["panel"], background=colors["panel"], foreground=colors["text"])
@@ -503,13 +609,14 @@ class MagicTasksApp:
     def build_shell(self) -> None:
         self.shell = ttk.Frame(self.root, padding=14)
         self.shell.pack(fill="both", expand=True)
-        self.header = ttk.Frame(self.shell)
+        self.header = ttk.Frame(self.shell, style="Hero.TFrame", padding=(14, 10))
         self.header.pack(fill="x", pady=(0, 10))
-        ttk.Label(self.header, text=APP_NAME, style="Title.TLabel").pack(side="left")
-        self.nav = ttk.Frame(self.header)
+        ttk.Label(self.header, text=APP_NAME, style="AppTitle.TLabel").pack(side="left")
+        ttk.Label(self.header, text=f"v{VERSION}", style="Hero.TLabel").pack(side="left", padx=(10, 0))
+        self.nav = ttk.Frame(self.header, style="Hero.TFrame")
         self.nav.pack(side="right")
         for name in ["Dashboard", "Tasks", "Calendar", "Focus", "Templates", "Settings"]:
-            ttk.Button(self.nav, text=name, command=lambda n=name: self.route(n)).pack(side="left", padx=3)
+            ttk.Button(self.nav, text=name, style="Nav.TButton", command=lambda n=name: self.route(n)).pack(side="left", padx=3)
         self.content = ttk.Frame(self.shell)
         self.content.pack(fill="both", expand=True)
 
@@ -528,8 +635,8 @@ class MagicTasksApp:
             "Settings": self.show_settings,
         }[name]()
 
-    def panel(self, parent, padding: int = 12):
-        frame = ttk.Frame(parent, style="Panel.TFrame", padding=padding)
+    def panel(self, parent, padding: int = 12, style: str = "Panel.TFrame"):
+        frame = ttk.Frame(parent, style=style, padding=padding)
         return frame
 
     def active_list(self) -> dict:
@@ -562,11 +669,12 @@ class MagicTasksApp:
 
     def build_task(self, text: str, due_date: str = "", due_time: str = "", recurrence: str = "None", spice: int = 3) -> dict:
         plan = SmartPlanner.preview(text, due_date, spice)
+        notes = f"Quick start: {plan['next_action']}\nCoach note: {plan['coach_note']}"
         return {
             "id": make_id("task"),
             "text": plan["rewrite"],
             "original_text": clean_text(text),
-            "notes": "",
+            "notes": notes,
             "completed": False,
             "category": plan["category"],
             "energy": plan["energy"],
@@ -605,21 +713,21 @@ class MagicTasksApp:
         top = ttk.Frame(self.content)
         top.pack(fill="x")
         ttk.Label(top, text="Dashboard", style="Title.TLabel").pack(side="left")
-        ttk.Button(top, text="Quick Add", command=self.quick_add_dialog).pack(side="right")
+        ttk.Button(top, text="Quick Add", style="Accent.TButton", command=self.quick_add_dialog).pack(side="right")
 
         stats = ttk.Frame(self.content)
         stats.pack(fill="x", pady=10)
-        for label, value in [
-            ("Open", len(open_tasks)),
-            ("Done", len(done_tasks)),
-            ("Due Today", len(due_today)),
-            ("Overdue", len(overdue)),
-            ("Lists", len(self.data["lists"])),
+        for label, value, frame_style, label_style in [
+            ("Open", len(open_tasks), "CardOne.TFrame", "CardOne.TLabel"),
+            ("Done", len(done_tasks), "CardThree.TFrame", "CardThree.TLabel"),
+            ("Due Today", len(due_today), "CardTwo.TFrame", "CardTwo.TLabel"),
+            ("Overdue", len(overdue), "Panel.TFrame", "Panel.TLabel"),
+            ("Lists", len(self.data["lists"]), "Panel.TFrame", "Panel.TLabel"),
         ]:
-            card = self.panel(stats)
+            card = self.panel(stats, style=frame_style)
             card.pack(side="left", fill="x", expand=True, padx=4)
-            ttk.Label(card, text=str(value), style="Panel.TLabel", font=("Segoe UI", 20, "bold")).pack(anchor="w")
-            ttk.Label(card, text=label, style="Muted.TLabel").pack(anchor="w")
+            ttk.Label(card, text=str(value), style=label_style, font=("Segoe UI", 20, "bold")).pack(anchor="w")
+            ttk.Label(card, text=label, style=label_style).pack(anchor="w")
 
         body = ttk.PanedWindow(self.content, orient="horizontal")
         body.pack(fill="both", expand=True, pady=(4, 0))
@@ -635,10 +743,13 @@ class MagicTasksApp:
         for col, width in [("list", 160), ("due", 160), ("priority", 80)]:
             tree.heading(col, text=col.title())
             tree.column(col, width=width, anchor="w")
+        tree.tag_configure("high", background=colors["card1"], foreground=colors["button_text"])
+        tree.tag_configure("medium", background=colors["card2"], foreground=colors["text"])
         tree.pack(fill="both", expand=True)
         for task, task_list, _ in overdue + due_today + upcoming:
             prefix = "!" if parse_date(task.get("due_date")) and parse_date(task.get("due_date")) < today else ""
-            tree.insert("", "end", text=task["text"], values=(task_list["name"], f"{prefix}{due_label(task)}", task["priority"]))
+            tag = "high" if task["priority"] == "High" else "medium" if task["priority"] == "Medium" else ""
+            tree.insert("", "end", text=task["text"], values=(task_list["name"], f"{prefix}{due_label(task)}", task["priority"]), tags=(tag,))
 
         ttk.Label(right, text="Next Actions", style="Panel.TLabel", font=("Segoe UI", 13, "bold")).pack(anchor="w", pady=(0, 8))
         next_box = ttk.Frame(right, style="Panel.TFrame")
@@ -720,6 +831,10 @@ class MagicTasksApp:
             self.tree.heading(col, text=title)
             self.tree.column(col, width=width, anchor="w")
         self.tree.pack(fill="both", expand=True)
+        colors = self.colors()
+        self.tree.tag_configure("high", background=colors["card1"], foreground=colors["button_text"])
+        self.tree.tag_configure("medium", background=colors["card2"], foreground=colors["text"])
+        self.tree.tag_configure("done", background=colors["panel2"], foreground=colors["muted"])
         self.tree.bind("<Double-1>", lambda event: self.edit_selected())
         self.tree.bind("<Button-3>", self.show_task_menu)
         self.populate_task_tree()
@@ -729,10 +844,10 @@ class MagicTasksApp:
         for item in self.tree.get_children():
             self.tree.delete(item)
         for task in self.active_list().get("tasks", []):
-            iid = self.tree.insert("", "end", text=task["text"], values=self.task_values(task), open=True)
+            iid = self.tree.insert("", "end", text=task["text"], values=self.task_values(task), open=True, tags=(self.task_tag(task),))
             self.tree_item_map[iid] = task["id"]
             for subtask in task.get("subtasks", []):
-                sid = self.tree.insert(iid, "end", text=subtask["text"], values=self.task_values(subtask), open=True)
+                sid = self.tree.insert(iid, "end", text=subtask["text"], values=self.task_values(subtask), open=True, tags=(self.task_tag(subtask),))
                 self.tree_item_map[sid] = subtask["id"]
 
     def task_values(self, task: dict) -> tuple:
@@ -744,6 +859,15 @@ class MagicTasksApp:
             task.get("category", "General"),
             task.get("recurrence", "None"),
         )
+
+    def task_tag(self, task: dict) -> str:
+        if task.get("completed"):
+            return "done"
+        if task.get("priority") == "High":
+            return "high"
+        if task.get("priority") == "Medium":
+            return "medium"
+        return ""
 
     def on_list_selected(self, _event=None) -> None:
         selected = self.list_var.get()
@@ -1265,7 +1389,7 @@ class MagicTasksApp:
         ttk.Label(self.content, text="Settings", style="Title.TLabel").pack(anchor="w", pady=(0, 10))
         panel = self.panel(self.content)
         panel.pack(fill="x")
-        theme_var = StringVar(value=self.data["settings"].get("theme", "Light"))
+        theme_var = StringVar(value=self.data["settings"].get("theme", DEFAULT_SETTINGS["theme"]))
         compact_var = StringVar(value=str(self.data["settings"].get("compact_rows", False)))
         motion_var = StringVar(value=str(self.data["settings"].get("reduced_motion", False)))
         plain_var = StringVar(value=str(self.data["settings"].get("plain_background", False)))
@@ -1292,7 +1416,7 @@ class MagicTasksApp:
 
     def preview_setting(self, key: str, value: bool) -> None:
         self.data["settings"][key] = value
-        self.apply_theme(self.data["settings"].get("theme", "Light"))
+        self.apply_theme(self.data["settings"].get("theme", DEFAULT_SETTINGS["theme"]))
 
     def save_settings(self) -> None:
         self.save_data()
@@ -1300,7 +1424,7 @@ class MagicTasksApp:
 
     def cancel_settings(self) -> None:
         self.data["settings"] = copy.deepcopy(self.pending_settings)
-        self.apply_theme(self.data["settings"].get("theme", "Light"))
+        self.apply_theme(self.data["settings"].get("theme", DEFAULT_SETTINGS["theme"]))
         self.show_dashboard()
 
     def check_reminders(self) -> None:
@@ -1341,12 +1465,15 @@ class MagicTasksApp:
             from PIL import Image, ImageDraw
         except Exception:
             return
-        image = Image.new("RGB", (64, 64), "#071208")
-        draw = ImageDraw.Draw(image)
-        draw.rounded_rectangle((8, 8, 56, 56), radius=12, fill="#18ff65")
-        draw.rectangle((18, 20, 46, 26), fill="#071208")
-        draw.rectangle((18, 32, 40, 38), fill="#071208")
-        draw.rectangle((18, 44, 34, 50), fill="#071208")
+        if ICON_PNG.exists():
+            image = Image.open(ICON_PNG).resize((64, 64))
+        else:
+            image = Image.new("RGB", (64, 64), "#6c5ce7")
+            draw = ImageDraw.Draw(image)
+            draw.rounded_rectangle((8, 8, 56, 56), radius=12, fill="#ffffff")
+            draw.rounded_rectangle((16, 18, 48, 26), radius=4, fill="#ff3d95")
+            draw.rounded_rectangle((16, 30, 48, 38), radius=4, fill="#ffca3a")
+            draw.rounded_rectangle((16, 42, 48, 50), radius=4, fill="#22cfc0")
 
         def open_window(_icon=None, _item=None) -> None:
             self.root.after(0, self.show_window)

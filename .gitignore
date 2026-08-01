@@ -10,3 +10,4 @@ release/
 *.sha256
 .venv/
 tasks.json
+temp-appdata-launch-check/

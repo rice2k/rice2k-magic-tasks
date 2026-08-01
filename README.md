@@ -2,7 +2,7 @@
 
 Rice2k Magic Tasks is a Windows-first task planner for turning rough ideas into smaller, calmer next actions. It runs locally, saves your lists on your computer, and includes smart planning tools for due dates, recurring tasks, reminders, focus sessions, templates, calendar views, and low-distraction themes.
 
-![Version](https://img.shields.io/badge/version-2.2.0-18a058)
+![Version](https://img.shields.io/badge/version-2.3.0-ff3d95)
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -10,12 +10,12 @@ Rice2k Magic Tasks is a Windows-first task planner for turning rough ideas into 
 
 Get the latest Windows build from the [Releases](../../releases) page.
 
-The v2.2.0 release includes:
+The v2.3.0 release includes:
 
-- `Rice2k-Magic-Tasks-v2.2.0.exe` - single-file Windows app
-- `Rice2k-Magic-Tasks-v2.2.0.zip` - release package
-- `Rice2k-Magic-Tasks-v2.2.0.sha256` - checksum file
-- `Rice2k-Magic-Tasks-Source-v2.2.0.zip` - source archive
+- `Rice2k-Magic-Tasks-v2.3.0.exe` - single-file Windows app
+- `Rice2k-Magic-Tasks-v2.3.0.zip` - release package
+- `Rice2k-Magic-Tasks-v2.3.0.sha256` - checksum file
+- `Rice2k-Magic-Tasks-Source-v2.3.0.zip` - source archive
 
 ## Features
 
@@ -25,6 +25,7 @@ The v2.2.0 release includes:
 - Breaks tasks into smaller steps.
 - Estimates task size in minutes.
 - Adds categories, energy levels, and priority hints.
+- Adds a quick-start note and short coaching note to new tasks.
 - Keeps the planning engine local and private.
 
 ### Task management
@@ -65,17 +66,14 @@ The v2.2.0 release includes:
 
 ### Themes
 
-Settings preview themes immediately before you save.
+Settings preview themes immediately before you save. v2.3.0 keeps the theme list focused to four colorful choices:
 
 Included themes:
 
-- Light
-- Dark
-- Low Stimulation
-- Focus Contrast
-- Soft Pastel
+- Candy Pop
+- Ocean Glow
+- Sunset Arcade
 - Black & Green
-- Clean Blue
 
 Settings also include compact rows, reduced motion, and plain background options.
 
@@ -107,7 +105,7 @@ You can also double-click `run_app.bat`.
 
 ```powershell
 python -m pip install -r requirements.txt
-python -m PyInstaller --noconfirm --clean --onefile --windowed --name Rice2kMagicTasks src\rice2k_magic_tasks.py
+python -m PyInstaller --noconfirm --clean --onefile --windowed --name Rice2kMagicTasks --icon assets\rice2k_magic_tasks.ico --add-data "assets;assets" src\rice2k_magic_tasks.py
 ```
 
 The executable will be created at:
@@ -137,7 +135,7 @@ No account is required. The app does not upload task data by default.
 After downloading the EXE or ZIP, compare its SHA-256 hash with the release checksum file.
 
 ```powershell
-Get-FileHash .\Rice2k-Magic-Tasks-v2.2.0.exe -Algorithm SHA256
+Get-FileHash .\Rice2k-Magic-Tasks-v2.3.0.exe -Algorithm SHA256
 ```
 
 ## Project Layout
@@ -145,6 +143,9 @@ Get-FileHash .\Rice2k-Magic-Tasks-v2.2.0.exe -Algorithm SHA256
 ```text
 src/
   rice2k_magic_tasks.py
+assets/
+  rice2k_magic_tasks.ico
+  rice2k_magic_tasks.png
 tests/
   smoke_test.py
 docs/

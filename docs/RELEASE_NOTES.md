@@ -1,21 +1,19 @@
-# Rice2k Magic Tasks v2.6.0
+# Rice2k Magic Tasks v2.7.0
 
-Clickable card UI update.
+Colorful usability and GitHub page update.
 
 ## Highlights
 
-- Opens directly to the todo list, matching the simple web flow.
-- Centered title, subtitle, add box, spiciness control, task list, and lower action buttons.
-- Four user-friendly themes: Classic Web, Soft Blue, Warm Focus, and Black & Green.
-- Softer priority colors so task text stays readable.
-- Web-like task input placeholder with Enter-to-add.
-- Replaced the hard-to-read table with large clickable task cards.
-- Added local action icon images and visible labels for task buttons.
-- Fixed right-click task tools with complete, breakdown, simplify, edit, subtask, estimate, duplicate, move, focus, and delete actions.
-- List actions below the tasks: Estimate, Prioritize, Save, Load, Copy Markdown, and Clear completed.
-- Better local planner notes with quick-start, minimum-win, done-when, blocker, and coaching guidance.
-- Theme migration for older saved settings.
-- Settings now explains each theme and only shows controls that visibly change the interface.
+- Added four full themes: Candy Pop, Ocean Glow, Sunset Arcade, and Lavender Pop.
+- Kept Classic Web, Soft Blue, Warm Focus, and Black & Green for eight total themes.
+- Added a quick theme picker directly on the task screen.
+- Increased the default app size so controls have more room.
+- Improved task cards with colored priority stripes.
+- Moved card action buttons under task text so long task names stay readable.
+- Added clearer labeled icon buttons for Steps, Edit, Add, and Del.
+- Improved Dashboard wrapping for long next-action names.
+- Updated the README with a colorful layout, app icon, screenshots, and how-to-use steps.
+- Added real app screenshots for Dashboard, Tasks, and Themes.
 
 ## Notes
 

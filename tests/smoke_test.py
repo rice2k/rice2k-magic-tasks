@@ -16,6 +16,8 @@ def test_planner_preview():
     assert plan["next_action"]
     assert plan["coach_note"]
     assert plan["minimum_win"]
+    assert plan["finish_line"]
+    assert plan["blocker_check"]
 
 
 def test_recurrence_weekdays():
@@ -30,14 +32,25 @@ def test_default_data_shape():
 
 
 def test_theme_count_and_names():
-    assert list(THEMES) == ["Classic Web", "Soft Blue", "Warm Focus", "Black & Green"]
+    assert list(THEMES) == [
+        "Classic Web",
+        "Candy Pop",
+        "Ocean Glow",
+        "Soft Blue",
+        "Sunset Arcade",
+        "Warm Focus",
+        "Lavender Pop",
+        "Black & Green",
+    ]
 
 
 def test_old_theme_names_migrate():
     assert normalize_theme_name("Easy Light") == "Classic Web"
-    assert normalize_theme_name("Candy Pop") == "Classic Web"
-    assert normalize_theme_name("Ocean Glow") == "Soft Blue"
-    assert normalize_theme_name("Sunset Arcade") == "Warm Focus"
+    assert normalize_theme_name("Candy Pop") == "Candy Pop"
+    assert normalize_theme_name("Ocean Glow") == "Ocean Glow"
+    assert normalize_theme_name("Sunset Arcade") == "Sunset Arcade"
+    assert normalize_theme_name("Soft Pastel") == "Candy Pop"
+    assert normalize_theme_name("Clean Blue") == "Ocean Glow"
 
 
 def test_icon_assets_exist():

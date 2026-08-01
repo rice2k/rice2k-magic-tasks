@@ -21,7 +21,7 @@ from tkinter import Canvas, Menu, PhotoImage, StringVar, Text, Tk, Toplevel, fil
 from tkinter import ttk
 
 APP_NAME = "Rice2k Magic Tasks"
-VERSION = "2.6.0"
+VERSION = "2.7.0"
 APP_DIR = Path(os.getenv("APPDATA", Path.home())) / "Rice2kMagicTasks"
 DATA_FILE = APP_DIR / "tasks.json"
 
@@ -61,6 +61,52 @@ THEMES = {
         "card_text": "#162033",
         "description": "Closest to the simple web layout: white panels, blue actions, gentle highlights.",
     },
+    "Candy Pop": {
+        "bg": "#fff3fb",
+        "panel": "#ffffff",
+        "panel2": "#ffe1f3",
+        "card1": "#ffe4f1",
+        "card2": "#e5f5ff",
+        "card3": "#e8ffe9",
+        "high_bg": "#ffe2e9",
+        "medium_bg": "#fff3c4",
+        "done_bg": "#eff8f0",
+        "text": "#261529",
+        "muted": "#6d5871",
+        "accent": "#e83f8f",
+        "accent2": "#ffd2ea",
+        "accent3": "#19a974",
+        "danger": "#c82451",
+        "done": "#1b8b5a",
+        "button_text": "#ffffff",
+        "hero": "#d6327f",
+        "hero_text": "#ffffff",
+        "card_text": "#261529",
+        "description": "Bright pinks, sky blues, and green wins for a more playful task list.",
+    },
+    "Ocean Glow": {
+        "bg": "#eafcff",
+        "panel": "#ffffff",
+        "panel2": "#cdf5f5",
+        "card1": "#dcfaff",
+        "card2": "#e7fff3",
+        "card3": "#fff7dc",
+        "high_bg": "#ffe3f0",
+        "medium_bg": "#fff5ca",
+        "done_bg": "#e5f8ee",
+        "text": "#092d38",
+        "muted": "#476c75",
+        "accent": "#008bb8",
+        "accent2": "#c8f4ff",
+        "accent3": "#00a676",
+        "danger": "#c93667",
+        "done": "#18895f",
+        "button_text": "#ffffff",
+        "hero": "#007999",
+        "hero_text": "#ffffff",
+        "card_text": "#092d38",
+        "description": "Clean water colors with punchy buttons and calm reading contrast.",
+    },
     "Soft Blue": {
         "bg": "#edf7fb",
         "panel": "#ffffff",
@@ -84,6 +130,29 @@ THEMES = {
         "card_text": "#12313f",
         "description": "Cool, quiet colors for longer reading sessions.",
     },
+    "Sunset Arcade": {
+        "bg": "#fff2e8",
+        "panel": "#fffefb",
+        "panel2": "#ffe1c4",
+        "card1": "#ffdac7",
+        "card2": "#ffeaa8",
+        "card3": "#dff4cc",
+        "high_bg": "#ffd9dc",
+        "medium_bg": "#ffeaa8",
+        "done_bg": "#edf6dd",
+        "text": "#2d1d12",
+        "muted": "#745d4f",
+        "accent": "#ef6b2e",
+        "accent2": "#ffd4b8",
+        "accent3": "#4b9d4d",
+        "danger": "#c73c52",
+        "done": "#4b8f38",
+        "button_text": "#ffffff",
+        "hero": "#d84a27",
+        "hero_text": "#fffaf1",
+        "card_text": "#2d1d12",
+        "description": "Orange, peach, and gold for a bright desktop-app feel.",
+    },
     "Warm Focus": {
         "bg": "#fff7ed",
         "panel": "#ffffff",
@@ -106,6 +175,29 @@ THEMES = {
         "hero_text": "#fffaf1",
         "card_text": "#2d241c",
         "description": "Warm, readable, and low-glare without feeling plain.",
+    },
+    "Lavender Pop": {
+        "bg": "#f7f1ff",
+        "panel": "#ffffff",
+        "panel2": "#eadcff",
+        "card1": "#eee2ff",
+        "card2": "#dff7ff",
+        "card3": "#fff2ca",
+        "high_bg": "#ffe0ef",
+        "medium_bg": "#fff2ca",
+        "done_bg": "#edf7f0",
+        "text": "#25193c",
+        "muted": "#625276",
+        "accent": "#7b4ce3",
+        "accent2": "#e3d5ff",
+        "accent3": "#00a7a5",
+        "danger": "#c93e75",
+        "done": "#1f8f67",
+        "button_text": "#ffffff",
+        "hero": "#6539c9",
+        "hero_text": "#ffffff",
+        "card_text": "#25193c",
+        "description": "Purple, teal, and soft gold with strong readable text.",
     },
     "Black & Green": {
         "bg": "#020504",
@@ -134,15 +226,12 @@ THEMES = {
 
 THEME_ALIASES = {
     "Easy Light": "Classic Web",
-    "Candy Pop": "Classic Web",
-    "Ocean Glow": "Soft Blue",
-    "Sunset Arcade": "Warm Focus",
     "Light": "Classic Web",
     "Dark": "Black & Green",
     "Low Stimulation": "Classic Web",
     "Focus Contrast": "Black & Green",
-    "Soft Pastel": "Warm Focus",
-    "Clean Blue": "Soft Blue",
+    "Soft Pastel": "Candy Pop",
+    "Clean Blue": "Ocean Glow",
 }
 
 DEFAULT_SETTINGS = {
@@ -595,8 +684,8 @@ class MagicTasksApp:
     def __init__(self) -> None:
         self.root = Tk()
         self.root.title(f"{APP_NAME} v{VERSION}")
-        self.root.geometry("1180x760")
-        self.root.minsize(980, 620)
+        self.root.geometry("1200x840")
+        self.root.minsize(1040, 680)
         self.root.protocol("WM_DELETE_WINDOW", self.hide_to_tray)
         self.app_icon_image = None
         self.action_icons: dict[str, PhotoImage] = {}
@@ -897,7 +986,7 @@ class MagicTasksApp:
             row = ttk.Frame(next_box, style="Panel.TFrame")
             row.pack(fill="x", pady=5)
             mark = "Subtask" if parent else task_list["name"]
-            ttk.Label(row, text=task["text"], style="Panel.TLabel", font=UI_FONT_BOLD, wraplength=400).pack(anchor="w")
+            ttk.Label(row, text=task["text"], style="Panel.TLabel", font=UI_FONT_BOLD, wraplength=300).pack(anchor="w")
             ttk.Label(row, text=f"{mark} | {task.get('estimate', 10)} min | {task.get('energy', 'Medium')} energy", style="Muted.TLabel").pack(anchor="w")
         if not open_tasks:
             ttk.Label(next_box, text="Everything is complete.", style="Panel.TLabel").pack(anchor="w")
@@ -923,6 +1012,11 @@ class MagicTasksApp:
         selector.bind("<<ComboboxSelected>>", self.on_list_selected)
         ttk.Button(list_bar, text="New tab", command=self.new_list_dialog).pack(side="left", padx=4)
         ttk.Button(list_bar, text="Rename tab", command=self.rename_list_dialog).pack(side="left", padx=4)
+        ttk.Label(list_bar, text="Theme").pack(side="left", padx=(18, 4))
+        self.quick_theme_var = StringVar(value=self.data["settings"].get("theme", DEFAULT_SETTINGS["theme"]))
+        theme_selector = ttk.Combobox(list_bar, textvariable=self.quick_theme_var, values=list(THEMES.keys()), state="readonly", width=16)
+        theme_selector.pack(side="left")
+        theme_selector.bind("<<ComboboxSelected>>", self.switch_task_theme)
 
         add_panel = self.panel(page, padding=14)
         add_panel.pack(fill="x", pady=(0, 10))
@@ -1031,6 +1125,16 @@ class MagicTasksApp:
             return "SelectedTask.TFrame", "SelectedTask.TLabel", "SelectedMeta.TLabel"
         return "TaskCard.TFrame", "TaskCard.TLabel", "TaskMeta.TLabel"
 
+    def task_accent_color(self, task: dict) -> str:
+        colors = self.colors()
+        if task.get("completed"):
+            return colors["done"]
+        if task.get("priority") == "High":
+            return colors["danger"]
+        if task.get("priority") == "Medium":
+            return colors["accent3"]
+        return colors["accent"]
+
     def render_task_card(self, task: dict, depth: int = 0) -> None:
         is_selected = task["id"] == self.selected_task_id
         frame_style, title_style, meta_style = self.task_styles(task, is_selected)
@@ -1040,6 +1144,10 @@ class MagicTasksApp:
         card.pack(fill="x")
         self.bind_task_clicks(card, task["id"])
 
+        rail = Canvas(card, width=7, height=58, bg=self.task_accent_color(task), highlightthickness=0)
+        rail.pack(side="left", fill="y", padx=(0, 10))
+        self.bind_task_clicks(rail, task["id"])
+
         check_text = "[x]" if task.get("completed") else "[ ]"
         check = ttk.Button(card, text=check_text, width=4, command=lambda tid=task["id"]: self.toggle_task_by_id(tid))
         check.pack(side="left", padx=(0, 10))
@@ -1047,7 +1155,7 @@ class MagicTasksApp:
 
         text_area = ttk.Frame(card, style=frame_style)
         text_area.pack(side="left", fill="x", expand=True)
-        title = ttk.Label(text_area, text=task["text"], style=title_style, font=("Segoe UI", 13, "bold"), wraplength=620)
+        title = ttk.Label(text_area, text=task["text"], style=title_style, font=("Segoe UI", 13, "bold"), wraplength=760)
         title.pack(anchor="w")
         self.bind_task_clicks(text_area, task["id"])
         self.bind_task_clicks(title, task["id"])
@@ -1062,17 +1170,17 @@ class MagicTasksApp:
         meta.pack(anchor="w", pady=(3, 0))
         self.bind_task_clicks(meta, task["id"])
 
-        actions = ttk.Frame(card, style=frame_style)
-        actions.pack(side="right", padx=(10, 0))
+        actions = ttk.Frame(text_area, style=frame_style)
+        actions.pack(anchor="w", pady=(8, 0))
         for icon_name, text, command in [
             ("magic", "Steps", lambda tid=task["id"]: self.run_task_action(tid, self.breakdown_selected)),
             ("edit", "Edit", lambda tid=task["id"]: self.run_task_action(tid, self.edit_selected)),
-            ("subtask", "Subtask", lambda tid=task["id"]: self.run_task_action(tid, self.add_subtask_dialog)),
-            ("delete", "Delete", lambda tid=task["id"]: self.run_task_action(tid, self.delete_selected)),
+            ("subtask", "Add", lambda tid=task["id"]: self.run_task_action(tid, self.add_subtask_dialog)),
+            ("delete", "Del", lambda tid=task["id"]: self.run_task_action(tid, self.delete_selected)),
         ]:
             button = self.icon_button(actions, icon_name, text, command)
             button.bind("<Button-3>", lambda event, tid=task["id"]: self.show_task_menu(event, tid))
-            button.pack(side="left", padx=2)
+            button.pack(side="left", padx=(0, 6))
         self.bind_task_clicks(actions, task["id"])
 
         self.task_card_widgets[task["id"]] = {
@@ -1132,6 +1240,13 @@ class MagicTasksApp:
                 self.active_list_id = task_list["id"]
                 break
         self.selected_task_id = None
+        self.show_tasks()
+
+    def switch_task_theme(self, _event=None) -> None:
+        selected = normalize_theme_name(self.quick_theme_var.get() if hasattr(self, "quick_theme_var") else None)
+        self.data["settings"]["theme"] = selected
+        self.save_data()
+        self.apply_theme(selected)
         self.show_tasks()
 
     def add_task(self) -> None:

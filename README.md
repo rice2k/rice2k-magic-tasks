@@ -1,64 +1,114 @@
 # Rice2k Magic Tasks
 
-Rice2k Magic Tasks is a Windows-first task planner for turning rough ideas into smaller, calmer next actions. It runs locally, saves your lists on your computer, and includes smart planning tools for due dates, recurring tasks, reminders, focus sessions, templates, calendar views, and low-distraction themes.
+<p align="center">
+  <img src="assets/rice2k_magic_tasks.png" alt="Rice2k Magic Tasks icon" width="96" height="96">
+</p>
 
-![Version](https://img.shields.io/badge/version-2.6.0-3366ee)
-![Platform](https://img.shields.io/badge/platform-Windows-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+<p align="center">
+  A colorful Windows task planner that turns messy to-dos into smaller, calmer next actions.
+</p>
+
+<p align="center">
+  <img alt="Version" src="https://img.shields.io/badge/version-2.7.0-e83f8f">
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-008bb8">
+  <img alt="Themes" src="https://img.shields.io/badge/themes-8-7b4ce3">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-19a974">
+</p>
+
+## Screenshots
+
+![Task list with colorful cards](docs/screenshots/tasks.png)
+
+![Dashboard view](docs/screenshots/dashboard.png)
+
+![Theme settings](docs/screenshots/themes.png)
 
 ## Download
 
 Get the latest Windows build from the [Releases](../../releases) page.
 
-The v2.6.0 release includes:
+The v2.7.0 release includes:
 
-- `Rice2k-Magic-Tasks-v2.6.0.exe` - single-file Windows app
-- `Rice2k-Magic-Tasks-v2.6.0.zip` - release package
-- `Rice2k-Magic-Tasks-v2.6.0.sha256` - checksum file
-- `Rice2k-Magic-Tasks-Source-v2.6.0.zip` - source archive
+- `Rice2k-Magic-Tasks-v2.7.0.exe` - single-file Windows app.
+- `Rice2k-Magic-Tasks-v2.7.0.zip` - release package.
+- `Rice2k-Magic-Tasks-v2.7.0.sha256` - checksum file.
+- `Rice2k-Magic-Tasks-Source-v2.7.0.zip` - source archive.
+
+Windows may show a SmartScreen warning because the app is unsigned.
+
+## What It Does
+
+- Rewrites vague tasks into clearer action wording.
+- Breaks large tasks into smaller steps.
+- Adds estimates, priority hints, categories, and energy levels.
+- Saves helpful notes with a quick start, minimum win, finish line, blocker check, and coach note.
+- Keeps your task data local on your computer.
+- Supports due dates, reminders, recurring tasks, templates, a dashboard, calendar view, focus mode, and tray access.
+
+## How To Use
+
+1. Open `Rice2k-Magic-Tasks-v2.7.0.exe`.
+2. Type a task into **Add new item**.
+3. Use **Spiciness level** to choose how detailed the breakdown should be.
+4. Add a due date, time, or repeat setting if you want one.
+5. Press **Add**.
+6. Use the task buttons:
+   - **Steps** breaks the task into subtasks.
+   - **Edit** changes the task text, notes, due date, reminders, and recurrence.
+   - **Add** adds a subtask.
+   - **Del** removes the task.
+7. Right-click a task for more actions, including simplify, duplicate, move, estimate, focus, and complete.
+8. Change themes instantly from the task screen or from **Settings**.
+
+## Themes
+
+Rice2k Magic Tasks now includes eight themes:
+
+- Classic Web
+- Candy Pop
+- Ocean Glow
+- Soft Blue
+- Sunset Arcade
+- Warm Focus
+- Lavender Pop
+- Black & Green
+
+Settings also includes smaller task rows and a plain background option for reading comfort.
 
 ## Features
 
-### Smart planning
+### Smart Planning
 
-- Rewrites vague tasks into clearer action wording.
-- Breaks tasks into smaller steps.
-- Estimates task size in minutes.
-- Adds categories, energy levels, and priority hints.
-- Adds quick-start, minimum-win, done-when, blocker, and coaching notes to new tasks.
-- Keeps the planning engine local and private.
+- Local planner for task rewriting, breakdowns, estimates, categories, energy levels, and priorities.
+- Richer guidance for vague tasks with **Done when** and **Watch for** notes.
+- More useful subtasks for home, work, health, errands, admin, school, creative, and email tasks.
 
-### Task management
+### Task Management
 
 - Multiple named task lists.
 - Nested subtasks.
-- Completion tracking.
-- Large clickable task cards with checkbox controls and icon action buttons.
-- Right-click menu with complete, breakdown, simplify, edit, subtask, estimate, duplicate, move, focus, and delete actions.
-- Built-in planner notes that explain the finish line and common blockers for vague tasks.
-- Manual task editing with notes, due date, due time, reminder timing, and recurrence.
+- Large clickable task cards.
+- Colored priority stripes.
+- Checkbox controls.
+- Labeled icon buttons.
+- Right-click task menu.
+- Manual editing with notes, due date, due time, reminder timing, and recurrence.
 - Move tasks up or down inside a list.
 
-### Dates, reminders, and recurrence
+### Scheduling
 
 - Due dates and due times.
 - In-app reminders while the app is running.
 - Daily, weekday, weekly, and monthly recurring tasks.
 - Automatic creation of the next recurring task after completion.
-- Monthly calendar view for upcoming work.
+- Monthly calendar view.
 
-### Dashboard
+### Focus
 
-- Counts open tasks, completed tasks, due-today tasks, overdue tasks, and lists.
-- Shows overdue, today, and upcoming tasks.
-- Surfaces next actions across all lists.
-
-### Focus Mode
-
-- Shows one task at a time.
-- 5, 15, and 25 minute focus timers.
+- One-task focus mode.
+- 5, 15, and 25 minute timers.
 - One-click complete and next-task controls.
-- Distraction capture box for parking unrelated thoughts.
+- Distraction capture box.
 
 ### Templates
 
@@ -66,20 +116,7 @@ The v2.6.0 release includes:
 - Save your current list as a reusable template.
 - Apply a template into a new list.
 
-### Themes
-
-Settings preview themes immediately before you save. v2.6.0 keeps the theme list focused to four readable choices:
-
-Included themes:
-
-- Classic Web
-- Soft Blue
-- Warm Focus
-- Black & Green
-
-Settings also include smaller rows and plain background options for reading comfort.
-
-### Windows system tray
+### Windows Tray
 
 The packaged release includes tray support with quick access to:
 
@@ -137,7 +174,7 @@ No account is required. The app does not upload task data by default.
 After downloading the EXE or ZIP, compare its SHA-256 hash with the release checksum file.
 
 ```powershell
-Get-FileHash .\Rice2k-Magic-Tasks-v2.6.0.exe -Algorithm SHA256
+Get-FileHash .\Rice2k-Magic-Tasks-v2.7.0.exe -Algorithm SHA256
 ```
 
 ## Project Layout
@@ -148,10 +185,12 @@ src/
 assets/
   rice2k_magic_tasks.ico
   rice2k_magic_tasks.png
-tests/
-  smoke_test.py
+  actions/
 docs/
   RELEASE_NOTES.md
+  screenshots/
+tests/
+  smoke_test.py
 build_exe.bat
 run_app.bat
 requirements.txt

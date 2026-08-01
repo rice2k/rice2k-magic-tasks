@@ -9,9 +9,9 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-2.7.0-e83f8f">
+  <img alt="Version" src="https://img.shields.io/badge/version-2.8.0-e83f8f">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-008bb8">
-  <img alt="Themes" src="https://img.shields.io/badge/themes-8-7b4ce3">
+  <img alt="Themes" src="https://img.shields.io/badge/themes-10-7b4ce3">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-19a974">
 </p>
 
@@ -23,16 +23,18 @@
 
 ![Theme settings](docs/screenshots/themes.png)
 
+![Help screen](docs/screenshots/help.png)
+
 ## Download
 
 Get the latest Windows build from the [Releases](../../releases) page.
 
-The v2.7.0 release includes:
+The v2.8.0 release includes:
 
-- `Rice2k-Magic-Tasks-v2.7.0.exe` - single-file Windows app.
-- `Rice2k-Magic-Tasks-v2.7.0.zip` - release package.
-- `Rice2k-Magic-Tasks-v2.7.0.sha256` - checksum file.
-- `Rice2k-Magic-Tasks-Source-v2.7.0.zip` - source archive.
+- `Rice2k-Magic-Tasks-v2.8.0.exe` - single-file Windows app.
+- `Rice2k-Magic-Tasks-v2.8.0.zip` - release package.
+- `Rice2k-Magic-Tasks-v2.8.0.sha256` - checksum file.
+- `Rice2k-Magic-Tasks-Source-v2.8.0.zip` - source archive.
 
 Windows may show a SmartScreen warning because the app is unsigned.
 
@@ -47,7 +49,7 @@ Windows may show a SmartScreen warning because the app is unsigned.
 
 ## How To Use
 
-1. Open `Rice2k-Magic-Tasks-v2.7.0.exe`.
+1. Open `Rice2k-Magic-Tasks-v2.8.0.exe`.
 2. Type a task into **Add new item**.
 3. Use **Spiciness level** to choose how detailed the breakdown should be.
 4. Add a due date, time, or repeat setting if you want one.
@@ -58,11 +60,23 @@ Windows may show a SmartScreen warning because the app is unsigned.
    - **Add** adds a subtask.
    - **Del** removes the task.
 7. Right-click a task for more actions, including simplify, duplicate, move, estimate, focus, and complete.
-8. Change themes instantly from the task screen or from **Settings**.
+8. Use **Search** or **Show completed** when the list gets long.
+9. Change themes instantly from the task screen or from **Settings**.
+10. Press **F1** for the built-in help page.
+
+## Shortcuts
+
+- `Ctrl+K` - quick add a task.
+- `Ctrl+T` - open Tasks.
+- `Ctrl+D` - open Dashboard.
+- `Ctrl+M` - open Calendar.
+- `F1` - open Help.
+- Double-click a task to edit it.
+- Right-click a task to open task tools.
 
 ## Themes
 
-Rice2k Magic Tasks now includes eight themes:
+Rice2k Magic Tasks now includes ten themes:
 
 - Classic Web
 - Candy Pop
@@ -71,6 +85,8 @@ Rice2k Magic Tasks now includes eight themes:
 - Sunset Arcade
 - Warm Focus
 - Lavender Pop
+- Mint Fresh
+- Graphite Calm
 - Black & Green
 
 Settings also includes smaller task rows and a plain background option for reading comfort.
@@ -89,9 +105,11 @@ Settings also includes smaller task rows and a plain background option for readi
 - Nested subtasks.
 - Large clickable task cards.
 - Colored priority stripes.
+- Search and completed-task filtering.
 - Checkbox controls.
 - Labeled icon buttons.
 - Right-click task menu.
+- Built-in Help page with quick-start steps and shortcuts.
 - Manual editing with notes, due date, due time, reminder timing, and recurrence.
 - Move tasks up or down inside a list.
 
@@ -174,7 +192,7 @@ No account is required. The app does not upload task data by default.
 After downloading the EXE or ZIP, compare its SHA-256 hash with the release checksum file.
 
 ```powershell
-Get-FileHash .\Rice2k-Magic-Tasks-v2.7.0.exe -Algorithm SHA256
+Get-FileHash .\Rice2k-Magic-Tasks-v2.8.0.exe -Algorithm SHA256
 ```
 
 ## Project Layout

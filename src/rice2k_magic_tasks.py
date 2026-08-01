@@ -21,7 +21,7 @@ from tkinter import Canvas, Menu, PhotoImage, StringVar, Text, Tk, Toplevel, fil
 from tkinter import ttk
 
 APP_NAME = "Rice2k Magic Tasks"
-VERSION = "2.7.0"
+VERSION = "2.8.0"
 APP_DIR = Path(os.getenv("APPDATA", Path.home())) / "Rice2kMagicTasks"
 DATA_FILE = APP_DIR / "tasks.json"
 
@@ -199,6 +199,52 @@ THEMES = {
         "card_text": "#25193c",
         "description": "Purple, teal, and soft gold with strong readable text.",
     },
+    "Mint Fresh": {
+        "bg": "#eefcf4",
+        "panel": "#ffffff",
+        "panel2": "#d8f5e6",
+        "card1": "#daf9e8",
+        "card2": "#e6f7ff",
+        "card3": "#fff5d8",
+        "high_bg": "#ffe3e8",
+        "medium_bg": "#fff5d8",
+        "done_bg": "#e4f6eb",
+        "text": "#102d22",
+        "muted": "#527366",
+        "accent": "#129968",
+        "accent2": "#c9f2df",
+        "accent3": "#0b87a6",
+        "danger": "#b93f5e",
+        "done": "#168a5f",
+        "button_text": "#ffffff",
+        "hero": "#087a57",
+        "hero_text": "#ffffff",
+        "card_text": "#102d22",
+        "description": "Fresh green, blue, and gold with crisp task-card contrast.",
+    },
+    "Graphite Calm": {
+        "bg": "#111318",
+        "panel": "#1b1f27",
+        "panel2": "#2a303b",
+        "card1": "#233248",
+        "card2": "#3a3020",
+        "card3": "#20362d",
+        "high_bg": "#3a2029",
+        "medium_bg": "#3a3020",
+        "done_bg": "#202a25",
+        "text": "#f4f7fb",
+        "muted": "#b8c0cc",
+        "accent": "#69a7ff",
+        "accent2": "#2d4260",
+        "accent3": "#65d6ad",
+        "danger": "#ff7b91",
+        "done": "#65d6ad",
+        "button_text": "#10141b",
+        "hero": "#203d66",
+        "hero_text": "#f4f7fb",
+        "card_text": "#f4f7fb",
+        "description": "A dark gray theme with blue highlights and softer contrast than black.",
+    },
     "Black & Green": {
         "bg": "#020504",
         "panel": "#07110b",
@@ -232,6 +278,8 @@ THEME_ALIASES = {
     "Focus Contrast": "Black & Green",
     "Soft Pastel": "Candy Pop",
     "Clean Blue": "Ocean Glow",
+    "Mint": "Mint Fresh",
+    "Graphite": "Graphite Calm",
 }
 
 DEFAULT_SETTINGS = {
@@ -708,6 +756,7 @@ class MagicTasksApp:
         self.configure_style()
         self.build_shell()
         self.apply_theme(self.data["settings"]["theme"])
+        self.register_shortcuts()
         self.show_tasks()
         self.setup_tray()
         self.root.after(1000, self.check_reminders)
@@ -832,10 +881,17 @@ class MagicTasksApp:
         ttk.Label(self.header, text=APP_NAME, style="Title.TLabel").pack(side="left")
         self.nav = ttk.Frame(self.header)
         self.nav.pack(side="right")
-        for name in ["Dashboard", "Tasks", "Calendar", "Focus", "Templates", "Settings"]:
+        for name in ["Dashboard", "Tasks", "Calendar", "Focus", "Templates", "Settings", "Help"]:
             ttk.Button(self.nav, text=name, style="Nav.TButton", command=lambda n=name: self.route(n)).pack(side="left", padx=3)
         self.content = ttk.Frame(self.shell)
         self.content.pack(fill="both", expand=True)
+
+    def register_shortcuts(self) -> None:
+        self.root.bind_all("<Control-k>", lambda _event: self.quick_add_dialog())
+        self.root.bind_all("<Control-t>", lambda _event: self.route("Tasks"))
+        self.root.bind_all("<Control-d>", lambda _event: self.route("Dashboard"))
+        self.root.bind_all("<Control-m>", lambda _event: self.route("Calendar"))
+        self.root.bind_all("<F1>", lambda _event: self.route("Help"))
 
     def clear_content(self) -> None:
         self.root.unbind("<Escape>")
@@ -851,6 +907,7 @@ class MagicTasksApp:
             "Focus": self.show_focus,
             "Templates": self.show_templates,
             "Settings": self.show_settings,
+            "Help": self.show_help,
         }[name]()
 
     def panel(self, parent, padding: int = 12, style: str = "Panel.TFrame"):
@@ -1018,6 +1075,23 @@ class MagicTasksApp:
         theme_selector.pack(side="left")
         theme_selector.bind("<<ComboboxSelected>>", self.switch_task_theme)
 
+        filter_bar = ttk.Frame(page)
+        filter_bar.pack(fill="x", pady=(0, 8))
+        ttk.Label(filter_bar, text="Search").pack(side="left", padx=(0, 4))
+        self.search_text = StringVar()
+        search_entry = ttk.Entry(filter_bar, textvariable=self.search_text, width=34)
+        search_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        search_entry.bind("<KeyRelease>", lambda _event: self.populate_task_tree())
+        self.show_done_var = StringVar(value="True")
+        ttk.Checkbutton(
+            filter_bar,
+            text="Show completed",
+            variable=self.show_done_var,
+            onvalue="True",
+            offvalue="False",
+            command=self.populate_task_tree,
+        ).pack(side="left")
+
         add_panel = self.panel(page, padding=14)
         add_panel.pack(fill="x", pady=(0, 10))
         self.task_text = StringVar()
@@ -1109,14 +1183,41 @@ class MagicTasksApp:
         self.task_card_widgets = {}
         for child in self.task_list_frame.winfo_children():
             child.destroy()
+        shown = 0
+        query = clean_text(self.search_text.get()).lower() if hasattr(self, "search_text") else ""
+        show_done = self.show_done_var.get() == "True" if hasattr(self, "show_done_var") else True
         for task in self.active_list().get("tasks", []):
-            self.render_task_card(task, depth=0)
+            parent_visible = self.task_visible(task, query, show_done)
+            if parent_visible:
+                self.render_task_card(task, depth=0)
+                shown += 1
             for subtask in task.get("subtasks", []):
-                self.render_task_card(subtask, depth=1)
+                if self.task_visible(subtask, query, show_done):
+                    self.render_task_card(subtask, depth=1 if parent_visible else 0)
+                    shown += 1
         if not self.active_list().get("tasks"):
             empty = ttk.Frame(self.task_list_frame, style="Panel.TFrame", padding=22)
             empty.pack(fill="x")
             ttk.Label(empty, text="No tasks yet. Add one above and break it down when it feels too big.", style="Muted.TLabel", wraplength=720).pack(anchor="center")
+        elif shown == 0:
+            empty = ttk.Frame(self.task_list_frame, style="Panel.TFrame", padding=22)
+            empty.pack(fill="x")
+            ttk.Label(empty, text="No matching tasks. Clear the search or turn on completed tasks.", style="Muted.TLabel", wraplength=720).pack(anchor="center")
+
+    def task_visible(self, task: dict, query: str, show_done: bool) -> bool:
+        if task.get("completed") and not show_done:
+            return False
+        if not query:
+            return True
+        fields = [
+            task.get("text", ""),
+            task.get("notes", ""),
+            task.get("category", ""),
+            task.get("energy", ""),
+            task.get("priority", ""),
+            task.get("due_date", ""),
+        ]
+        return query in " ".join(fields).lower()
 
     def task_styles(self, task: dict, is_selected: bool) -> tuple[str, str, str]:
         if task.get("completed"):
@@ -1900,6 +2001,63 @@ class MagicTasksApp:
         self.data.setdefault("templates", []).append({"name": f"{current['name']} Template", "tasks": tasks})
         self.save_data()
         self.show_templates()
+
+    def show_help(self) -> None:
+        self.clear_content()
+        ttk.Label(self.content, text="Help", style="Title.TLabel").pack(anchor="w", pady=(0, 10))
+        layout = ttk.PanedWindow(self.content, orient="horizontal")
+        layout.pack(fill="both", expand=True)
+        left = self.panel(layout)
+        right = self.panel(layout)
+        layout.add(left, weight=3)
+        layout.add(right, weight=2)
+
+        ttk.Label(left, text="Quick Start", style="Section.TLabel").pack(anchor="w", pady=(0, 8))
+        steps = [
+            "Type one messy task into Add new item.",
+            "Use Spiciness level to choose how many steps you want.",
+            "Add a due date, time, or repeat if the task needs one.",
+            "Press Add. The planner rewrites the task and adds helpful notes.",
+            "Use Steps for a breakdown, Edit for details, Add for subtasks, and Del to remove.",
+            "Right-click any task for more tools like simplify, duplicate, move, focus, and estimate.",
+        ]
+        for index, text in enumerate(steps, start=1):
+            row = ttk.Frame(left, style="Panel.TFrame")
+            row.pack(fill="x", pady=3)
+            ttk.Label(row, text=f"{index}.", style="Panel.TLabel", font=UI_FONT_BOLD, width=3).pack(side="left", anchor="n")
+            ttk.Label(row, text=text, style="Panel.TLabel", wraplength=620).pack(side="left", fill="x", expand=True)
+
+        ttk.Label(left, text="Reading Tips", style="Section.TLabel").pack(anchor="w", pady=(16, 8))
+        tips = [
+            "Use Search to narrow a long list.",
+            "Turn off Show completed when finished tasks are distracting.",
+            "Use the Theme picker on the task page for instant color changes.",
+            "Try Focus when you want the app to show only one next task.",
+        ]
+        for tip in tips:
+            ttk.Label(left, text=f"- {tip}", style="Panel.TLabel", wraplength=650).pack(anchor="w", pady=2)
+
+        ttk.Label(right, text="Keyboard Shortcuts", style="Section.TLabel").pack(anchor="w", pady=(0, 8))
+        shortcuts = [
+            ("Ctrl+K", "Quick add a task"),
+            ("Ctrl+T", "Open Tasks"),
+            ("Ctrl+D", "Open Dashboard"),
+            ("Ctrl+M", "Open Calendar"),
+            ("F1", "Open Help"),
+            ("Enter", "Add from the main task box"),
+            ("Double-click task", "Edit selected task"),
+            ("Right-click task", "Open task tools"),
+        ]
+        for keys, action in shortcuts:
+            row = ttk.Frame(right, style="Panel.TFrame")
+            row.pack(fill="x", pady=4)
+            ttk.Label(row, text=keys, style="Panel.TLabel", font=UI_FONT_BOLD, width=16).pack(side="left")
+            ttk.Label(row, text=action, style="Muted.TLabel", wraplength=320).pack(side="left", fill="x", expand=True)
+
+        ttk.Label(right, text="Good Starter Tasks", style="Section.TLabel").pack(anchor="w", pady=(18, 8))
+        examples = ["clean kitchen", "send project update", "prepare appointment", "organize paperwork"]
+        for example in examples:
+            ttk.Button(right, text=example, command=lambda value=example: self.quick_add(value)).pack(fill="x", pady=3)
 
     def show_settings(self) -> None:
         self.clear_content()

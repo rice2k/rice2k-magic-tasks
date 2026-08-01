@@ -40,6 +40,8 @@ def test_theme_count_and_names():
         "Sunset Arcade",
         "Warm Focus",
         "Lavender Pop",
+        "Mint Fresh",
+        "Graphite Calm",
         "Black & Green",
     ]
 
@@ -51,6 +53,8 @@ def test_old_theme_names_migrate():
     assert normalize_theme_name("Sunset Arcade") == "Sunset Arcade"
     assert normalize_theme_name("Soft Pastel") == "Candy Pop"
     assert normalize_theme_name("Clean Blue") == "Ocean Glow"
+    assert normalize_theme_name("Mint") == "Mint Fresh"
+    assert normalize_theme_name("Graphite") == "Graphite Calm"
 
 
 def test_icon_assets_exist():

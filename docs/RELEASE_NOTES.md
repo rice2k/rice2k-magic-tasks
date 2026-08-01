@@ -1,19 +1,17 @@
-# Rice2k Magic Tasks v2.7.0
+# Rice2k Magic Tasks v2.8.0
 
-Colorful usability and GitHub page update.
+Help, search, shortcuts, and theme expansion update.
 
 ## Highlights
 
-- Added four full themes: Candy Pop, Ocean Glow, Sunset Arcade, and Lavender Pop.
-- Kept Classic Web, Soft Blue, Warm Focus, and Black & Green for eight total themes.
-- Added a quick theme picker directly on the task screen.
-- Increased the default app size so controls have more room.
-- Improved task cards with colored priority stripes.
-- Moved card action buttons under task text so long task names stay readable.
-- Added clearer labeled icon buttons for Steps, Edit, Add, and Del.
-- Improved Dashboard wrapping for long next-action names.
-- Updated the README with a colorful layout, app icon, screenshots, and how-to-use steps.
-- Added real app screenshots for Dashboard, Tasks, and Themes.
+- Added a built-in Help page with quick-start steps, reading tips, shortcuts, and starter tasks.
+- Added keyboard shortcuts for quick add, Tasks, Dashboard, Calendar, and Help.
+- Added task search on the main task screen.
+- Added a Show completed toggle to hide finished tasks when they get distracting.
+- Added two full themes: Mint Fresh and Graphite Calm.
+- Updated the app to ten total themes.
+- Updated README version badges, screenshots, how-to-use steps, and shortcuts.
+- Added a Help screenshot for the GitHub repository page.
 
 ## Notes
 

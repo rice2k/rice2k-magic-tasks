@@ -17,11 +17,11 @@ import time
 import uuid
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from tkinter import Menu, PhotoImage, StringVar, Text, Tk, Toplevel, messagebox
+from tkinter import Menu, PhotoImage, StringVar, Text, Tk, Toplevel, filedialog, messagebox
 from tkinter import ttk
 
 APP_NAME = "Rice2k Magic Tasks"
-VERSION = "2.4.0"
+VERSION = "2.5.0"
 APP_DIR = Path(os.getenv("APPDATA", Path.home())) / "Rice2kMagicTasks"
 DATA_FILE = APP_DIR / "tasks.json"
 
@@ -33,10 +33,11 @@ def resource_path(relative_path: str) -> Path:
 
 ICON_PNG = resource_path("assets/rice2k_magic_tasks.png")
 ICON_ICO = resource_path("assets/rice2k_magic_tasks.ico")
+TASK_PLACEHOLDER = "Add new item..."
 
 
 THEMES = {
-    "Easy Light": {
+    "Classic Web": {
         "bg": "#f5f7fb",
         "panel": "#ffffff",
         "panel2": "#e9eef8",
@@ -57,7 +58,7 @@ THEMES = {
         "hero": "#3157d5",
         "hero_text": "#ffffff",
         "card_text": "#162033",
-        "description": "Clear white panels, blue actions, and gentle highlights.",
+        "description": "Closest to the simple web layout: white panels, blue actions, gentle highlights.",
     },
     "Soft Blue": {
         "bg": "#edf7fb",
@@ -131,19 +132,20 @@ THEMES = {
 }
 
 THEME_ALIASES = {
-    "Candy Pop": "Easy Light",
+    "Easy Light": "Classic Web",
+    "Candy Pop": "Classic Web",
     "Ocean Glow": "Soft Blue",
     "Sunset Arcade": "Warm Focus",
-    "Light": "Easy Light",
+    "Light": "Classic Web",
     "Dark": "Black & Green",
-    "Low Stimulation": "Easy Light",
+    "Low Stimulation": "Classic Web",
     "Focus Contrast": "Black & Green",
     "Soft Pastel": "Warm Focus",
     "Clean Blue": "Soft Blue",
 }
 
 DEFAULT_SETTINGS = {
-    "theme": "Easy Light",
+    "theme": "Classic Web",
     "compact_rows": False,
     "reduced_motion": False,
     "plain_background": False,
@@ -562,7 +564,7 @@ class MagicTasksApp:
 
         self.data = self.load_data()
         self.active_list_id = self.data["lists"][0]["id"]
-        self.current_view = "Dashboard"
+        self.current_view = "Tasks"
         self.tree_item_map: dict[str, str] = {}
         self.reminder_seen: set[str] = set()
         self.focus_task_id: str | None = None
@@ -575,7 +577,7 @@ class MagicTasksApp:
         self.configure_style()
         self.build_shell()
         self.apply_theme(self.data["settings"]["theme"])
-        self.show_dashboard()
+        self.show_tasks()
         self.setup_tray()
         self.root.after(1000, self.check_reminders)
 
@@ -676,11 +678,10 @@ class MagicTasksApp:
     def build_shell(self) -> None:
         self.shell = ttk.Frame(self.root, padding=16)
         self.shell.pack(fill="both", expand=True)
-        self.header = ttk.Frame(self.shell, style="Hero.TFrame", padding=(16, 12))
-        self.header.pack(fill="x", pady=(0, 12))
-        ttk.Label(self.header, text=APP_NAME, style="AppTitle.TLabel").pack(side="left")
-        ttk.Label(self.header, text=f"v{VERSION}", style="Hero.TLabel").pack(side="left", padx=(10, 0))
-        self.nav = ttk.Frame(self.header, style="Hero.TFrame")
+        self.header = ttk.Frame(self.shell)
+        self.header.pack(fill="x", pady=(0, 8))
+        ttk.Label(self.header, text=APP_NAME, style="Title.TLabel").pack(side="left")
+        self.nav = ttk.Frame(self.header)
         self.nav.pack(side="right")
         for name in ["Dashboard", "Tasks", "Calendar", "Focus", "Templates", "Settings"]:
             ttk.Button(self.nav, text=name, style="Nav.TButton", command=lambda n=name: self.route(n)).pack(side="left", padx=3)
@@ -842,76 +843,82 @@ class MagicTasksApp:
 
     def show_tasks(self) -> None:
         self.clear_content()
-        top = ttk.Frame(self.content)
-        top.pack(fill="x", pady=(0, 10))
-        ttk.Label(top, text="Tasks", style="Title.TLabel").pack(side="left")
-        ttk.Label(top, text="List").pack(side="left", padx=(22, 4))
+        page = ttk.Frame(self.content)
+        page.pack(fill="both", expand=True, padx=72)
+
+        title_area = ttk.Frame(page)
+        title_area.pack(fill="x", pady=(4, 14))
+        ttk.Label(title_area, text="Rice2k Magic ToDo", style="Title.TLabel", font=("Segoe UI", 24, "bold")).pack(anchor="center")
+        ttk.Label(title_area, text="Break tasks into calm next steps.", foreground=self.colors()["muted"]).pack(anchor="center", pady=(2, 0))
+
+        list_bar = ttk.Frame(page)
+        list_bar.pack(fill="x", pady=(0, 8))
+        ttk.Label(list_bar, text="List").pack(side="left", padx=(0, 4))
         list_names = [item["name"] for item in self.data["lists"]]
         self.list_var = StringVar(value=self.active_list()["name"])
-        selector = ttk.Combobox(top, textvariable=self.list_var, values=list_names, state="readonly", width=24)
+        selector = ttk.Combobox(list_bar, textvariable=self.list_var, values=list_names, state="readonly", width=24)
         selector.pack(side="left")
         selector.bind("<<ComboboxSelected>>", self.on_list_selected)
-        ttk.Button(top, text="New List", command=self.new_list_dialog).pack(side="left", padx=4)
-        ttk.Button(top, text="Rename", command=self.rename_list_dialog).pack(side="left", padx=4)
+        ttk.Button(list_bar, text="New tab", command=self.new_list_dialog).pack(side="left", padx=4)
+        ttk.Button(list_bar, text="Rename tab", command=self.rename_list_dialog).pack(side="left", padx=4)
 
-        add_panel = self.panel(self.content, padding=14)
+        add_panel = self.panel(page, padding=14)
         add_panel.pack(fill="x", pady=(0, 10))
         self.task_text = StringVar()
         self.due_date = StringVar()
         self.due_time = StringVar(value="09:00")
         self.recurrence = StringVar(value="None")
-        ttk.Label(add_panel, text="Add a task", style="Section.TLabel").grid(row=0, column=0, sticky="w", columnspan=6)
-        ttk.Label(add_panel, text="Type the messy version. The app will clean it up and add a next step.", style="Muted.TLabel").grid(row=1, column=0, sticky="w", columnspan=6, pady=(2, 10))
-        self.task_entry = ttk.Entry(add_panel, textvariable=self.task_text, width=64)
-        self.task_entry.grid(row=2, column=0, sticky="ew", padx=(0, 8), columnspan=4)
-        self.task_entry.bind("<Return>", lambda _event: self.add_task())
-        ttk.Button(add_panel, text="Add Task", style="Accent.TButton", command=self.add_task).grid(row=2, column=4, sticky="ew", padx=(0, 8))
-        ttk.Button(add_panel, text="Use Template", command=self.show_templates).grid(row=2, column=5, sticky="ew")
-        ttk.Label(add_panel, text="Due date", style="Panel.TLabel").grid(row=3, column=0, sticky="w", pady=(12, 0))
-        ttk.Entry(add_panel, textvariable=self.due_date, width=14).grid(row=4, column=0, sticky="ew", padx=(0, 8))
-        ttk.Label(add_panel, text="Time", style="Panel.TLabel").grid(row=3, column=1, sticky="w", pady=(12, 0))
-        ttk.Entry(add_panel, textvariable=self.due_time, width=10).grid(row=4, column=1, sticky="ew", padx=(0, 8))
-        ttk.Label(add_panel, text="Repeats", style="Panel.TLabel").grid(row=3, column=2, sticky="w", pady=(12, 0))
-        ttk.Combobox(add_panel, textvariable=self.recurrence, values=RECURRENCE_OPTIONS, state="readonly", width=12).grid(row=4, column=2, sticky="ew", padx=(0, 8))
-        ttk.Label(add_panel, text="Breakdown detail", style="Panel.TLabel").grid(row=3, column=3, sticky="w", pady=(12, 0))
-        self.spice = ttk.Scale(add_panel, from_=1, to=5, orient="horizontal", length=110)
-        self.spice.set(3)
-        self.spice.grid(row=4, column=3, sticky="ew", padx=(0, 8))
         add_panel.columnconfigure(0, weight=1)
-        add_panel.columnconfigure(3, weight=1)
+        self.task_entry = ttk.Entry(add_panel, textvariable=self.task_text, width=70)
+        self.task_entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
+        self.task_entry.insert(0, TASK_PLACEHOLDER)
+        self.task_entry.configure(foreground=self.colors()["muted"])
+        self.task_entry.bind("<FocusIn>", self.clear_task_placeholder)
+        self.task_entry.bind("<FocusOut>", self.restore_task_placeholder)
+        self.task_entry.bind("<Return>", lambda _event: self.add_task())
+        ttk.Button(add_panel, text="Add", style="Accent.TButton", command=self.add_task).grid(row=0, column=1, sticky="ew")
 
-        toolbar = ttk.Frame(self.content)
-        toolbar.pack(fill="x", pady=(0, 10))
-        for label, command in [
-            ("Done / Undo", self.toggle_selected_complete),
-            ("Edit", self.edit_selected),
-            ("Make Easier", self.rewrite_selected),
-            ("Add Steps", self.breakdown_selected),
-            ("Up", lambda: self.move_selected(-1)),
-            ("Down", lambda: self.move_selected(1)),
-            ("Delete", self.delete_selected),
-        ]:
-            ttk.Button(toolbar, text=label, command=command).pack(side="left", padx=3)
+        spice_panel = ttk.Frame(add_panel, style="Panel.TFrame")
+        spice_panel.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(14, 0))
+        spice_panel.columnconfigure(1, weight=1)
+        ttk.Label(spice_panel, text="Spiciness level:", style="Panel.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
+        self.spice = ttk.Scale(spice_panel, from_=1, to=5, orient="horizontal", length=220)
+        self.spice.set(3)
+        self.spice.grid(row=0, column=1, sticky="ew", padx=(0, 10))
+        ttk.Label(spice_panel, text="More spice means more smaller steps.", style="Muted.TLabel").grid(row=0, column=2, sticky="e")
+
+        details = ttk.Frame(add_panel, style="Panel.TFrame")
+        details.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(12, 0))
+        for idx in range(4):
+            details.columnconfigure(idx, weight=1 if idx == 0 else 0)
+        ttk.Label(details, text="Due date", style="Panel.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Entry(details, textvariable=self.due_date, width=14).grid(row=1, column=0, sticky="ew", padx=(0, 8))
+        ttk.Label(details, text="Time", style="Panel.TLabel").grid(row=0, column=1, sticky="w")
+        ttk.Entry(details, textvariable=self.due_time, width=10).grid(row=1, column=1, sticky="ew", padx=(0, 8))
+        ttk.Label(details, text="Repeats", style="Panel.TLabel").grid(row=0, column=2, sticky="w")
+        ttk.Combobox(details, textvariable=self.recurrence, values=RECURRENCE_OPTIONS, state="readonly", width=12).grid(row=1, column=2, sticky="ew", padx=(0, 8))
+        ttk.Button(details, text="Templates", command=self.show_templates).grid(row=1, column=3, sticky="ew")
 
         self.tree = ttk.Treeview(
-            self.content,
+            page,
             columns=("status", "due", "priority", "estimate", "category", "repeat"),
             show="tree headings",
             selectmode="browse",
+            height=13,
         )
-        self.tree.heading("#0", text="Task")
-        self.tree.column("#0", width=560, anchor="w")
+        self.tree.heading("#0", text="To do")
+        self.tree.column("#0", width=640, anchor="w")
         for col, title, width in [
-            ("status", "Status", 90),
             ("due", "Due", 160),
-            ("priority", "Priority", 90),
             ("estimate", "Estimate", 90),
+            ("status", "Status", 90),
+            ("priority", "Priority", 90),
             ("category", "Category", 100),
             ("repeat", "Repeats", 90),
         ]:
             self.tree.heading(col, text=title)
             self.tree.column(col, width=width, anchor="w")
-        self.tree["displaycolumns"] = ("status", "due", "estimate")
+        self.tree["displaycolumns"] = ("due", "estimate")
         self.tree.pack(fill="both", expand=True)
         colors = self.colors()
         self.tree.tag_configure("high", background=colors["high_bg"], foreground=colors["text"])
@@ -921,16 +928,54 @@ class MagicTasksApp:
         self.tree.bind("<Button-3>", self.show_task_menu)
         self.populate_task_tree()
 
+        item_actions = ttk.Frame(page)
+        item_actions.pack(fill="x", pady=(10, 6))
+        for label, command in [
+            ("Complete", self.toggle_selected_complete),
+            ("Edit", self.edit_selected),
+            ("Break down", self.breakdown_selected),
+            ("Make easier", self.rewrite_selected),
+            ("Add subtask", self.add_subtask_dialog),
+            ("Remove", self.delete_selected),
+        ]:
+            ttk.Button(item_actions, text=label, command=command).pack(side="left", padx=(0, 6))
+
+        list_actions = ttk.Frame(page)
+        list_actions.pack(fill="x", pady=(4, 0))
+        for label, command in [
+            ("Estimate", self.estimate_current_list),
+            ("Prioritize", self.prioritize_current_list),
+            ("Save to file", self.save_current_list_to_file),
+            ("Load from file", self.load_current_list_from_file),
+            ("Copy Markdown", self.copy_markdown_to_clipboard),
+            ("Clear completed", self.clear_completed_tasks),
+        ]:
+            ttk.Button(list_actions, text=label, command=command).pack(side="left", padx=(0, 6), pady=2)
+
+    def clear_task_placeholder(self, _event=None) -> None:
+        if hasattr(self, "task_entry") and self.task_text.get() == TASK_PLACEHOLDER:
+            self.task_entry.delete(0, "end")
+            self.task_entry.configure(foreground=self.colors()["text"])
+
+    def restore_task_placeholder(self, _event=None) -> None:
+        if hasattr(self, "task_entry") and not self.task_text.get().strip():
+            self.task_entry.insert(0, TASK_PLACEHOLDER)
+            self.task_entry.configure(foreground=self.colors()["muted"])
+
     def populate_task_tree(self) -> None:
         self.tree_item_map = {}
         for item in self.tree.get_children():
             self.tree.delete(item)
         for task in self.active_list().get("tasks", []):
-            iid = self.tree.insert("", "end", text=task["text"], values=self.task_values(task), open=True, tags=(self.task_tag(task),))
+            iid = self.tree.insert("", "end", text=self.display_task_text(task), values=self.task_values(task), open=True, tags=(self.task_tag(task),))
             self.tree_item_map[iid] = task["id"]
             for subtask in task.get("subtasks", []):
-                sid = self.tree.insert(iid, "end", text=subtask["text"], values=self.task_values(subtask), open=True, tags=(self.task_tag(subtask),))
+                sid = self.tree.insert(iid, "end", text=self.display_task_text(subtask), values=self.task_values(subtask), open=True, tags=(self.task_tag(subtask),))
                 self.tree_item_map[sid] = subtask["id"]
+
+    def display_task_text(self, task: dict) -> str:
+        checkbox = "[x]" if task.get("completed") else "[ ]"
+        return f"{checkbox} {task['text']}"
 
     def task_values(self, task: dict) -> tuple:
         return (
@@ -961,6 +1006,8 @@ class MagicTasksApp:
 
     def add_task(self) -> None:
         text = clean_text(self.task_text.get())
+        if text == TASK_PLACEHOLDER:
+            text = ""
         if not text:
             messagebox.showinfo(APP_NAME, "Enter a task first.")
             return
@@ -1199,6 +1246,121 @@ class MagicTasksApp:
         if idx < 0 or target < 0 or target >= len(items):
             return
         items[idx], items[target] = items[target], items[idx]
+        self.save_data()
+        self.populate_task_tree()
+
+    def estimate_current_list(self) -> None:
+        for task in self.active_list().get("tasks", []):
+            self.refresh_task_planning(task)
+            for subtask in task.get("subtasks", []):
+                self.refresh_task_planning(subtask)
+        self.save_data()
+        self.populate_task_tree()
+
+    def prioritize_current_list(self) -> None:
+        priority_order = {"High": 0, "Medium": 1, "Normal": 2}
+        for task in self.active_list().get("tasks", []):
+            self.refresh_task_planning(task)
+            for subtask in task.get("subtasks", []):
+                self.refresh_task_planning(subtask)
+            task["subtasks"] = sorted(task.get("subtasks", []), key=lambda item: priority_order.get(item.get("priority", "Normal"), 3))
+        self.active_list()["tasks"] = sorted(self.active_list().get("tasks", []), key=lambda item: priority_order.get(item.get("priority", "Normal"), 3))
+        self.save_data()
+        self.populate_task_tree()
+
+    def refresh_task_planning(self, task: dict) -> None:
+        text = task.get("original_text") or task.get("text", "")
+        task["category"] = SmartPlanner.categorize(text)
+        task["energy"] = SmartPlanner.energy(text)
+        task["estimate"] = SmartPlanner.estimate(text, 3)
+        task["priority"] = SmartPlanner.priority(text, task.get("due_date"))
+        task["updated_at"] = app_now().isoformat()
+
+    def save_current_list_to_file(self) -> None:
+        filename = filedialog.asksaveasfilename(
+            title="Save list",
+            defaultextension=".json",
+            filetypes=[("Rice2k task list", "*.json"), ("All files", "*.*")],
+            initialfile=f"{self.active_list()['name']}.json",
+        )
+        if not filename:
+            return
+        Path(filename).write_text(json.dumps(self.active_list(), indent=2), encoding="utf-8")
+        messagebox.showinfo(APP_NAME, "List saved.")
+
+    def load_current_list_from_file(self) -> None:
+        filename = filedialog.askopenfilename(
+            title="Load list",
+            filetypes=[("Rice2k task list", "*.json"), ("All files", "*.*")],
+        )
+        if not filename:
+            return
+        try:
+            loaded = json.loads(Path(filename).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            messagebox.showwarning(APP_NAME, "That file could not be loaded.")
+            return
+        if not isinstance(loaded, dict) or not isinstance(loaded.get("tasks"), list):
+            messagebox.showwarning(APP_NAME, "That file does not look like a saved task list.")
+            return
+        current = self.active_list()
+        current["name"] = clean_text(loaded.get("name", current["name"])) or current["name"]
+        current["tasks"] = [self.normalize_loaded_task(task) for task in loaded.get("tasks", []) if isinstance(task, dict)]
+        self.save_data()
+        self.show_tasks()
+
+    def normalize_loaded_task(self, task: dict) -> dict:
+        normalized = self.build_task(task.get("original_text") or task.get("text", "Untitled task"))
+        for key in [
+            "id",
+            "text",
+            "original_text",
+            "notes",
+            "completed",
+            "category",
+            "energy",
+            "priority",
+            "estimate",
+            "due_date",
+            "due_time",
+            "reminder_minutes",
+            "recurrence",
+            "created_at",
+            "updated_at",
+        ]:
+            if key in task:
+                normalized[key] = task[key]
+        normalized["id"] = normalized.get("id") or make_id("task")
+        normalized["subtasks"] = [self.normalize_loaded_task(item) for item in task.get("subtasks", []) if isinstance(item, dict)]
+        return normalized
+
+    def copy_markdown_to_clipboard(self) -> None:
+        markdown = "\n".join(self.markdown_lines(self.active_list().get("tasks", []))) or "- [ ] No tasks yet"
+        self.root.clipboard_clear()
+        self.root.clipboard_append(markdown)
+        messagebox.showinfo(APP_NAME, "Markdown copied to clipboard.")
+
+    def markdown_lines(self, tasks: list[dict], indent: int = 0) -> list[str]:
+        lines = []
+        prefix = "  " * indent
+        for task in tasks:
+            checked = "x" if task.get("completed") else " "
+            estimate = f" ({task.get('estimate')} min)" if task.get("estimate") else ""
+            lines.append(f"{prefix}- [{checked}] {task.get('text', 'Untitled task')}{estimate}")
+            lines.extend(self.markdown_lines(task.get("subtasks", []), indent + 1))
+        return lines
+
+    def clear_completed_tasks(self) -> None:
+        def keep_open(tasks: list[dict]) -> list[dict]:
+            kept = []
+            for task in tasks:
+                if task.get("completed"):
+                    continue
+                task["subtasks"] = keep_open(task.get("subtasks", []))
+                kept.append(task)
+            return kept
+
+        self.active_list()["tasks"] = keep_open(self.active_list().get("tasks", []))
         self.save_data()
         self.populate_task_tree()
 

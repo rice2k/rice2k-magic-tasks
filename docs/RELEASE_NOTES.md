@@ -1,14 +1,16 @@
-# Rice2k Magic Tasks v2.4.0
+# Rice2k Magic Tasks v2.5.0
 
-Readability and ease-of-use update.
+Web-style ease-of-use update.
 
 ## Highlights
 
-- Larger default task rows and clearer font sizing for easier reading.
-- Four user-friendly themes: Easy Light, Soft Blue, Warm Focus, and Black & Green.
+- Opens directly to the todo list, matching the simple web flow.
+- Centered title, subtitle, add box, spiciness control, task list, and lower action buttons.
+- Four user-friendly themes: Classic Web, Soft Blue, Warm Focus, and Black & Green.
 - Softer priority colors so task text stays readable.
-- Simpler task entry area with one large add box, Enter-to-add, and optional details underneath.
-- Cleaner task list with fewer visible columns.
+- Web-like task input placeholder with Enter-to-add.
+- Cleaner task list with checkbox-style `[ ]` and `[x]` rows.
+- List actions below the tasks: Estimate, Prioritize, Save, Load, Copy Markdown, and Clear completed.
 - Better local planner notes with quick-start, minimum-win, and coaching guidance.
 - Theme migration for older saved settings.
 - Settings now explains each theme and only shows controls that visibly change the interface.

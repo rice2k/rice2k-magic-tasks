@@ -26,15 +26,16 @@ def test_default_data_shape():
     data = default_data()
     assert data["lists"]
     assert data["templates"]
-    assert data["settings"]["theme"] == "Easy Light"
+    assert data["settings"]["theme"] == "Classic Web"
 
 
 def test_theme_count_and_names():
-    assert list(THEMES) == ["Easy Light", "Soft Blue", "Warm Focus", "Black & Green"]
+    assert list(THEMES) == ["Classic Web", "Soft Blue", "Warm Focus", "Black & Green"]
 
 
 def test_old_theme_names_migrate():
-    assert normalize_theme_name("Candy Pop") == "Easy Light"
+    assert normalize_theme_name("Easy Light") == "Classic Web"
+    assert normalize_theme_name("Candy Pop") == "Classic Web"
     assert normalize_theme_name("Ocean Glow") == "Soft Blue"
     assert normalize_theme_name("Sunset Arcade") == "Warm Focus"
 

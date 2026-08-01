@@ -1,15 +1,17 @@
-# Rice2k Magic Tasks v2.3.0
+# Rice2k Magic Tasks v2.4.0
 
-Fun GUI and smarter planner update.
+Readability and ease-of-use update.
 
 ## Highlights
 
-- Brighter, more colorful dashboard and task list styling.
-- Four focused themes: Candy Pop, Ocean Glow, Sunset Arcade, and Black & Green.
-- New custom app icon for the window, tray, and packaged EXE.
-- Stronger local planner responses with better task rewrites, richer breakdowns, quick-start notes, and coaching notes.
-- More context-aware categories, including school and creative work.
+- Larger default task rows and clearer font sizing for easier reading.
+- Four user-friendly themes: Easy Light, Soft Blue, Warm Focus, and Black & Green.
+- Softer priority colors so task text stays readable.
+- Simpler task entry area with one large add box, Enter-to-add, and optional details underneath.
+- Cleaner task list with fewer visible columns.
+- Better local planner notes with quick-start, minimum-win, and coaching guidance.
 - Theme migration for older saved settings.
+- Settings now explains each theme and only shows controls that visibly change the interface.
 
 ## Notes
 

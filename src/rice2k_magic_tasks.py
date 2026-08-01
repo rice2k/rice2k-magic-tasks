@@ -21,7 +21,7 @@ from tkinter import Menu, PhotoImage, StringVar, Text, Tk, Toplevel, messagebox
 from tkinter import ttk
 
 APP_NAME = "Rice2k Magic Tasks"
-VERSION = "2.3.0"
+VERSION = "2.4.0"
 APP_DIR = Path(os.getenv("APPDATA", Path.home())) / "Rice2kMagicTasks"
 DATA_FILE = APP_DIR / "tasks.json"
 
@@ -36,86 +36,124 @@ ICON_ICO = resource_path("assets/rice2k_magic_tasks.ico")
 
 
 THEMES = {
-    "Candy Pop": {
-        "bg": "#fff1fb",
+    "Easy Light": {
+        "bg": "#f5f7fb",
         "panel": "#ffffff",
-        "panel2": "#ffe1f2",
-        "card1": "#ff5aa5",
-        "card2": "#ffc83d",
-        "card3": "#24d6bf",
-        "text": "#2a1741",
-        "muted": "#73506f",
-        "accent": "#ff3d95",
-        "accent2": "#ffca3a",
-        "accent3": "#22cfc0",
-        "danger": "#d92760",
-        "done": "#138a6d",
+        "panel2": "#e9eef8",
+        "card1": "#e8f0ff",
+        "card2": "#fff4d6",
+        "card3": "#e5f8ee",
+        "high_bg": "#ffe7ec",
+        "medium_bg": "#fff4d6",
+        "done_bg": "#eef2f7",
+        "text": "#162033",
+        "muted": "#5d6678",
+        "accent": "#3366ee",
+        "accent2": "#dfe8ff",
+        "accent3": "#24a87a",
+        "danger": "#b6324f",
+        "done": "#21885c",
         "button_text": "#ffffff",
-        "hero": "#6c5ce7",
+        "hero": "#3157d5",
         "hero_text": "#ffffff",
+        "card_text": "#162033",
+        "description": "Clear white panels, blue actions, and gentle highlights.",
     },
-    "Ocean Glow": {
-        "bg": "#eafcff",
+    "Soft Blue": {
+        "bg": "#edf7fb",
         "panel": "#ffffff",
-        "panel2": "#d8f6ff",
-        "card1": "#00a6fb",
-        "card2": "#ff7a59",
-        "card3": "#00c48c",
-        "text": "#102a35",
-        "muted": "#4b6974",
-        "accent": "#0077b6",
-        "accent2": "#ff7a59",
-        "accent3": "#00c48c",
-        "danger": "#c73b5b",
-        "done": "#008060",
+        "panel2": "#d9edf5",
+        "card1": "#dff3ff",
+        "card2": "#e7f8f0",
+        "card3": "#fff1db",
+        "high_bg": "#ffe7e2",
+        "medium_bg": "#fff1db",
+        "done_bg": "#e8f4f0",
+        "text": "#12313f",
+        "muted": "#52707b",
+        "accent": "#087aa8",
+        "accent2": "#d7eef7",
+        "accent3": "#1d9a73",
+        "danger": "#b94a5e",
+        "done": "#237a62",
         "button_text": "#ffffff",
-        "hero": "#023e8a",
+        "hero": "#0b5f82",
         "hero_text": "#ffffff",
+        "card_text": "#12313f",
+        "description": "Cool, quiet colors for longer reading sessions.",
     },
-    "Sunset Arcade": {
-        "bg": "#211631",
-        "panel": "#2e2145",
-        "panel2": "#3b2a59",
-        "card1": "#ff6b6b",
-        "card2": "#ffd166",
-        "card3": "#4cc9f0",
-        "text": "#fff8ea",
-        "muted": "#d7c7e8",
-        "accent": "#ff8a3d",
-        "accent2": "#4cc9f0",
-        "accent3": "#f72585",
-        "danger": "#ff5d73",
-        "done": "#80ffdb",
-        "button_text": "#20152d",
-        "hero": "#7209b7",
-        "hero_text": "#fff8ea",
+    "Warm Focus": {
+        "bg": "#fff7ed",
+        "panel": "#ffffff",
+        "panel2": "#f4e7d5",
+        "card1": "#ffe5c2",
+        "card2": "#f9efd4",
+        "card3": "#eaf3dc",
+        "high_bg": "#ffe1d6",
+        "medium_bg": "#f9efd4",
+        "done_bg": "#edf3e4",
+        "text": "#2d241c",
+        "muted": "#756756",
+        "accent": "#b85d17",
+        "accent2": "#f3dcc0",
+        "accent3": "#5d8f3c",
+        "danger": "#b54848",
+        "done": "#5d8f3c",
+        "button_text": "#ffffff",
+        "hero": "#9a4f16",
+        "hero_text": "#fffaf1",
+        "card_text": "#2d241c",
+        "description": "Warm, readable, and low-glare without feeling plain.",
     },
     "Black & Green": {
-        "bg": "#020603",
-        "panel": "#071208",
-        "panel2": "#0e2713",
-        "card1": "#18ff65",
-        "card2": "#c9ff28",
-        "card3": "#00d09c",
-        "text": "#e7ffe7",
-        "muted": "#91be91",
-        "accent": "#18ff65",
-        "accent2": "#c9ff28",
-        "accent3": "#00d09c",
+        "bg": "#020504",
+        "panel": "#07110b",
+        "panel2": "#102118",
+        "card1": "#102d1b",
+        "card2": "#1c3115",
+        "card3": "#0d3028",
+        "high_bg": "#2b171b",
+        "medium_bg": "#273017",
+        "done_bg": "#0e2118",
+        "text": "#e9ffe9",
+        "muted": "#9bc59e",
+        "accent": "#31e981",
+        "accent2": "#173d24",
+        "accent3": "#24cfa0",
         "danger": "#ff5d73",
-        "done": "#35f482",
-        "button_text": "#001905",
-        "hero": "#0a3d18",
-        "hero_text": "#e7ffe7",
+        "done": "#58f2a0",
+        "button_text": "#041006",
+        "hero": "#0b351c",
+        "hero_text": "#e9ffe9",
+        "card_text": "#e9ffe9",
+        "description": "Dark, green, high contrast, and easier on the eyes.",
     },
 }
 
+THEME_ALIASES = {
+    "Candy Pop": "Easy Light",
+    "Ocean Glow": "Soft Blue",
+    "Sunset Arcade": "Warm Focus",
+    "Light": "Easy Light",
+    "Dark": "Black & Green",
+    "Low Stimulation": "Easy Light",
+    "Focus Contrast": "Black & Green",
+    "Soft Pastel": "Warm Focus",
+    "Clean Blue": "Soft Blue",
+}
+
 DEFAULT_SETTINGS = {
-    "theme": "Candy Pop",
+    "theme": "Easy Light",
     "compact_rows": False,
     "reduced_motion": False,
     "plain_background": False,
 }
+
+UI_FONT = ("Segoe UI", 11)
+UI_FONT_BOLD = ("Segoe UI", 11, "bold")
+TITLE_FONT = ("Segoe UI", 19, "bold")
+APP_TITLE_FONT = ("Segoe UI", 20, "bold")
+SMALL_FONT = ("Segoe UI", 10)
 
 RECURRENCE_OPTIONS = ["None", "Daily", "Weekdays", "Weekly", "Monthly"]
 
@@ -199,6 +237,14 @@ def default_data() -> dict:
 
 def clean_text(value: str) -> str:
     return re.sub(r"\s+", " ", value.strip())
+
+
+def normalize_theme_name(name: str | None) -> str:
+    if name in THEMES:
+        return name
+    if name in THEME_ALIASES:
+        return THEME_ALIASES[name]
+    return DEFAULT_SETTINGS["theme"]
 
 
 def parse_date(value: str | None) -> date | None:
@@ -470,6 +516,25 @@ class SmartPlanner:
         return "Aim for progress, not a perfect plan."
 
     @classmethod
+    def minimum_win(cls, text: str) -> str:
+        category = cls.categorize(text)
+        if category == "Home":
+            return "Make one small area look better than it did five minutes ago."
+        if category == "Work":
+            return "Create or send one useful piece, even if the whole job is not done."
+        if category == "Health":
+            return "Do the next caring action and record it so you do not have to remember."
+        if category == "Errands":
+            return "Confirm the place, item, or call, then do only that next step."
+        if category == "Admin":
+            return "Find the right page or document and complete one required field."
+        if category == "School":
+            return "Work one question, paragraph, or study section before polishing."
+        if category == "Creative":
+            return "Make a rough version that exists, then improve one part."
+        return "Do one visible step that makes the task less stuck."
+
+    @classmethod
     def preview(cls, text: str, due_date: str | None, spice: int) -> dict:
         steps = cls.breakdown(text, spice)
         return {
@@ -481,6 +546,7 @@ class SmartPlanner:
             "steps": steps,
             "next_action": steps[0] if steps else clean_text(text),
             "coach_note": cls.coach_note(text, due_date),
+            "minimum_win": cls.minimum_win(text),
         }
 
 
@@ -541,8 +607,7 @@ class MagicTasksApp:
             data["lists"] = default_data()["lists"]
         for key, value in DEFAULT_SETTINGS.items():
             data["settings"].setdefault(key, value)
-        if data["settings"].get("theme") not in THEMES:
-            data["settings"]["theme"] = DEFAULT_SETTINGS["theme"]
+        data["settings"]["theme"] = normalize_theme_name(data["settings"].get("theme"))
         return data
 
     def save_payload(self, payload: dict) -> None:
@@ -554,6 +619,7 @@ class MagicTasksApp:
         self.save_payload(self.data)
 
     def configure_style(self) -> None:
+        self.root.option_add("*Font", UI_FONT)
         self.style = ttk.Style()
         try:
             self.style.theme_use("clam")
@@ -571,46 +637,47 @@ class MagicTasksApp:
             self.app_icon_image = None
 
     def colors(self) -> dict:
-        return THEMES.get(self.data["settings"].get("theme", DEFAULT_SETTINGS["theme"]), THEMES[DEFAULT_SETTINGS["theme"]])
+        return THEMES[normalize_theme_name(self.data["settings"].get("theme"))]
 
     def apply_theme(self, theme_name: str) -> None:
-        if theme_name not in THEMES:
-            theme_name = DEFAULT_SETTINGS["theme"]
+        theme_name = normalize_theme_name(theme_name)
         self.data["settings"]["theme"] = theme_name
         colors = self.colors()
-        row_height = 24 if self.data["settings"].get("compact_rows") else 32
-        self.root.configure(bg=colors["bg"])
-        self.style.configure(".", background=colors["bg"], foreground=colors["text"], fieldbackground=colors["panel"])
-        self.style.configure("TFrame", background=colors["bg"])
+        display_bg = colors["panel"] if self.data["settings"].get("plain_background") else colors["bg"]
+        row_height = 30 if self.data["settings"].get("compact_rows") else 40
+        self.root.configure(bg=display_bg)
+        self.style.configure(".", background=display_bg, foreground=colors["text"], fieldbackground=colors["panel"], font=UI_FONT)
+        self.style.configure("TFrame", background=display_bg)
         self.style.configure("Panel.TFrame", background=colors["panel"])
         self.style.configure("Hero.TFrame", background=colors["hero"])
         self.style.configure("CardOne.TFrame", background=colors["card1"])
         self.style.configure("CardTwo.TFrame", background=colors["card2"])
         self.style.configure("CardThree.TFrame", background=colors["card3"])
-        self.style.configure("TLabel", background=colors["bg"], foreground=colors["text"])
+        self.style.configure("TLabel", background=display_bg, foreground=colors["text"], font=UI_FONT)
         self.style.configure("Panel.TLabel", background=colors["panel"], foreground=colors["text"])
         self.style.configure("Muted.TLabel", background=colors["panel"], foreground=colors["muted"])
         self.style.configure("Hero.TLabel", background=colors["hero"], foreground=colors["hero_text"])
-        self.style.configure("CardOne.TLabel", background=colors["card1"], foreground=colors["button_text"])
-        self.style.configure("CardTwo.TLabel", background=colors["card2"], foreground=colors["text"])
-        self.style.configure("CardThree.TLabel", background=colors["card3"], foreground=colors["text"])
-        self.style.configure("Title.TLabel", background=colors["bg"], foreground=colors["text"], font=("Segoe UI", 18, "bold"))
-        self.style.configure("AppTitle.TLabel", background=colors["hero"], foreground=colors["hero_text"], font=("Segoe UI", 20, "bold"))
-        self.style.configure("Accent.TButton", background=colors["accent"], foreground=colors["button_text"], padding=7)
-        self.style.configure("TButton", padding=6, background=colors["panel2"], foreground=colors["text"])
-        self.style.configure("Nav.TButton", padding=7, background=colors["accent"], foreground=colors["button_text"])
+        self.style.configure("CardOne.TLabel", background=colors["card1"], foreground=colors["card_text"])
+        self.style.configure("CardTwo.TLabel", background=colors["card2"], foreground=colors["card_text"])
+        self.style.configure("CardThree.TLabel", background=colors["card3"], foreground=colors["card_text"])
+        self.style.configure("Title.TLabel", background=display_bg, foreground=colors["text"], font=TITLE_FONT)
+        self.style.configure("Section.TLabel", background=colors["panel"], foreground=colors["text"], font=UI_FONT_BOLD)
+        self.style.configure("AppTitle.TLabel", background=colors["hero"], foreground=colors["hero_text"], font=APP_TITLE_FONT)
+        self.style.configure("Accent.TButton", background=colors["accent"], foreground=colors["button_text"], padding=(14, 8), font=UI_FONT_BOLD)
+        self.style.configure("TButton", padding=(10, 7), background=colors["panel2"], foreground=colors["text"], font=UI_FONT)
+        self.style.configure("Nav.TButton", padding=(10, 7), background=colors["accent2"], foreground=colors["text"], font=SMALL_FONT)
         self.style.map("TButton", background=[("active", colors["accent2"])], foreground=[("active", colors["text"])])
-        self.style.configure("TEntry", fieldbackground=colors["panel"], foreground=colors["text"])
-        self.style.configure("TCombobox", fieldbackground=colors["panel"], foreground=colors["text"])
-        self.style.configure("Treeview", rowheight=row_height, fieldbackground=colors["panel"], background=colors["panel"], foreground=colors["text"])
-        self.style.configure("Treeview.Heading", background=colors["panel2"], foreground=colors["text"], font=("Segoe UI", 10, "bold"))
+        self.style.configure("TEntry", fieldbackground=colors["panel"], foreground=colors["text"], padding=7)
+        self.style.configure("TCombobox", fieldbackground=colors["panel"], foreground=colors["text"], padding=5)
+        self.style.configure("Treeview", rowheight=row_height, fieldbackground=colors["panel"], background=colors["panel"], foreground=colors["text"], font=UI_FONT)
+        self.style.configure("Treeview.Heading", background=colors["panel2"], foreground=colors["text"], font=UI_FONT_BOLD)
         self.style.map("Treeview", background=[("selected", colors["accent2"])], foreground=[("selected", colors["text"])])
 
     def build_shell(self) -> None:
-        self.shell = ttk.Frame(self.root, padding=14)
+        self.shell = ttk.Frame(self.root, padding=16)
         self.shell.pack(fill="both", expand=True)
-        self.header = ttk.Frame(self.shell, style="Hero.TFrame", padding=(14, 10))
-        self.header.pack(fill="x", pady=(0, 10))
+        self.header = ttk.Frame(self.shell, style="Hero.TFrame", padding=(16, 12))
+        self.header.pack(fill="x", pady=(0, 12))
         ttk.Label(self.header, text=APP_NAME, style="AppTitle.TLabel").pack(side="left")
         ttk.Label(self.header, text=f"v{VERSION}", style="Hero.TLabel").pack(side="left", padx=(10, 0))
         self.nav = ttk.Frame(self.header, style="Hero.TFrame")
@@ -621,6 +688,7 @@ class MagicTasksApp:
         self.content.pack(fill="both", expand=True)
 
     def clear_content(self) -> None:
+        self.root.unbind("<Escape>")
         for child in self.content.winfo_children():
             child.destroy()
 
@@ -669,7 +737,13 @@ class MagicTasksApp:
 
     def build_task(self, text: str, due_date: str = "", due_time: str = "", recurrence: str = "None", spice: int = 3) -> dict:
         plan = SmartPlanner.preview(text, due_date, spice)
-        notes = f"Quick start: {plan['next_action']}\nCoach note: {plan['coach_note']}"
+        notes = "\n".join(
+            [
+                f"Quick start: {plan['next_action']}",
+                f"Minimum win: {plan['minimum_win']}",
+                f"Coach note: {plan['coach_note']}",
+            ]
+        )
         return {
             "id": make_id("task"),
             "text": plan["rewrite"],
@@ -713,15 +787,15 @@ class MagicTasksApp:
         top = ttk.Frame(self.content)
         top.pack(fill="x")
         ttk.Label(top, text="Dashboard", style="Title.TLabel").pack(side="left")
-        ttk.Button(top, text="Quick Add", style="Accent.TButton", command=self.quick_add_dialog).pack(side="right")
+        ttk.Button(top, text="Add Task", style="Accent.TButton", command=self.quick_add_dialog).pack(side="right")
 
         stats = ttk.Frame(self.content)
         stats.pack(fill="x", pady=10)
         for label, value, frame_style, label_style in [
             ("Open", len(open_tasks), "CardOne.TFrame", "CardOne.TLabel"),
             ("Done", len(done_tasks), "CardThree.TFrame", "CardThree.TLabel"),
-            ("Due Today", len(due_today), "CardTwo.TFrame", "CardTwo.TLabel"),
-            ("Overdue", len(overdue), "Panel.TFrame", "Panel.TLabel"),
+            ("Today", len(due_today), "CardTwo.TFrame", "CardTwo.TLabel"),
+            ("Late", len(overdue), "Panel.TFrame", "Panel.TLabel"),
             ("Lists", len(self.data["lists"]), "Panel.TFrame", "Panel.TLabel"),
         ]:
             card = self.panel(stats, style=frame_style)
@@ -736,41 +810,42 @@ class MagicTasksApp:
         body.add(left, weight=3)
         body.add(right, weight=2)
 
-        ttk.Label(left, text="Needs Attention", style="Panel.TLabel", font=("Segoe UI", 13, "bold")).pack(anchor="w", pady=(0, 8))
+        ttk.Label(left, text="Needs Attention", style="Section.TLabel").pack(anchor="w", pady=(0, 8))
         tree = ttk.Treeview(left, columns=("list", "due", "priority"), show="tree headings")
         tree.heading("#0", text="Task")
-        tree.column("#0", width=330, anchor="w")
-        for col, width in [("list", 160), ("due", 160), ("priority", 80)]:
+        tree.column("#0", width=390, anchor="w")
+        for col, width in [("list", 150), ("due", 160), ("priority", 90)]:
             tree.heading(col, text=col.title())
             tree.column(col, width=width, anchor="w")
-        tree.tag_configure("high", background=colors["card1"], foreground=colors["button_text"])
-        tree.tag_configure("medium", background=colors["card2"], foreground=colors["text"])
+        tree.tag_configure("high", background=colors["high_bg"], foreground=colors["text"])
+        tree.tag_configure("medium", background=colors["medium_bg"], foreground=colors["text"])
         tree.pack(fill="both", expand=True)
         for task, task_list, _ in overdue + due_today + upcoming:
-            prefix = "!" if parse_date(task.get("due_date")) and parse_date(task.get("due_date")) < today else ""
+            prefix = "Late: " if parse_date(task.get("due_date")) and parse_date(task.get("due_date")) < today else ""
             tag = "high" if task["priority"] == "High" else "medium" if task["priority"] == "Medium" else ""
             tree.insert("", "end", text=task["text"], values=(task_list["name"], f"{prefix}{due_label(task)}", task["priority"]), tags=(tag,))
+        if not overdue and not due_today and not upcoming:
+            tree.insert("", "end", text="No dated tasks need attention.", values=("", "", ""))
 
-        ttk.Label(right, text="Next Actions", style="Panel.TLabel", font=("Segoe UI", 13, "bold")).pack(anchor="w", pady=(0, 8))
+        ttk.Label(right, text="Next Actions", style="Section.TLabel").pack(anchor="w", pady=(0, 8))
         next_box = ttk.Frame(right, style="Panel.TFrame")
         next_box.pack(fill="both", expand=True)
         for task, task_list, parent in open_tasks[:8]:
             row = ttk.Frame(next_box, style="Panel.TFrame")
-            row.pack(fill="x", pady=3)
+            row.pack(fill="x", pady=5)
             mark = "Subtask" if parent else task_list["name"]
-            ttk.Label(row, text=task["text"], style="Panel.TLabel", wraplength=360).pack(anchor="w")
+            ttk.Label(row, text=task["text"], style="Panel.TLabel", font=UI_FONT_BOLD, wraplength=400).pack(anchor="w")
             ttk.Label(row, text=f"{mark} | {task.get('estimate', 10)} min | {task.get('energy', 'Medium')} energy", style="Muted.TLabel").pack(anchor="w")
         if not open_tasks:
             ttk.Label(next_box, text="Everything is complete.", style="Panel.TLabel").pack(anchor="w")
         self.content.configure(style="TFrame")
-        self.root.configure(bg=colors["bg"])
 
     def show_tasks(self) -> None:
         self.clear_content()
         top = ttk.Frame(self.content)
-        top.pack(fill="x", pady=(0, 8))
+        top.pack(fill="x", pady=(0, 10))
         ttk.Label(top, text="Tasks", style="Title.TLabel").pack(side="left")
-        ttk.Label(top, text="List:").pack(side="left", padx=(20, 4))
+        ttk.Label(top, text="List").pack(side="left", padx=(22, 4))
         list_names = [item["name"] for item in self.data["lists"]]
         self.list_var = StringVar(value=self.active_list()["name"])
         selector = ttk.Combobox(top, textvariable=self.list_var, values=list_names, state="readonly", width=24)
@@ -779,35 +854,41 @@ class MagicTasksApp:
         ttk.Button(top, text="New List", command=self.new_list_dialog).pack(side="left", padx=4)
         ttk.Button(top, text="Rename", command=self.rename_list_dialog).pack(side="left", padx=4)
 
-        add_panel = self.panel(self.content)
-        add_panel.pack(fill="x", pady=(0, 8))
+        add_panel = self.panel(self.content, padding=14)
+        add_panel.pack(fill="x", pady=(0, 10))
         self.task_text = StringVar()
         self.due_date = StringVar()
         self.due_time = StringVar(value="09:00")
         self.recurrence = StringVar(value="None")
-        ttk.Label(add_panel, text="Task", style="Panel.TLabel").grid(row=0, column=0, sticky="w")
-        ttk.Entry(add_panel, textvariable=self.task_text, width=42).grid(row=1, column=0, sticky="ew", padx=(0, 8))
-        ttk.Label(add_panel, text="Due Date", style="Panel.TLabel").grid(row=0, column=1, sticky="w")
-        ttk.Entry(add_panel, textvariable=self.due_date, width=14).grid(row=1, column=1, sticky="ew", padx=(0, 8))
-        ttk.Label(add_panel, text="Time", style="Panel.TLabel").grid(row=0, column=2, sticky="w")
-        ttk.Entry(add_panel, textvariable=self.due_time, width=10).grid(row=1, column=2, sticky="ew", padx=(0, 8))
-        ttk.Label(add_panel, text="Repeats", style="Panel.TLabel").grid(row=0, column=3, sticky="w")
-        ttk.Combobox(add_panel, textvariable=self.recurrence, values=RECURRENCE_OPTIONS, state="readonly", width=12).grid(row=1, column=3, sticky="ew", padx=(0, 8))
-        ttk.Label(add_panel, text="Spice", style="Panel.TLabel").grid(row=0, column=4, sticky="w")
+        ttk.Label(add_panel, text="Add a task", style="Section.TLabel").grid(row=0, column=0, sticky="w", columnspan=6)
+        ttk.Label(add_panel, text="Type the messy version. The app will clean it up and add a next step.", style="Muted.TLabel").grid(row=1, column=0, sticky="w", columnspan=6, pady=(2, 10))
+        self.task_entry = ttk.Entry(add_panel, textvariable=self.task_text, width=64)
+        self.task_entry.grid(row=2, column=0, sticky="ew", padx=(0, 8), columnspan=4)
+        self.task_entry.bind("<Return>", lambda _event: self.add_task())
+        ttk.Button(add_panel, text="Add Task", style="Accent.TButton", command=self.add_task).grid(row=2, column=4, sticky="ew", padx=(0, 8))
+        ttk.Button(add_panel, text="Use Template", command=self.show_templates).grid(row=2, column=5, sticky="ew")
+        ttk.Label(add_panel, text="Due date", style="Panel.TLabel").grid(row=3, column=0, sticky="w", pady=(12, 0))
+        ttk.Entry(add_panel, textvariable=self.due_date, width=14).grid(row=4, column=0, sticky="ew", padx=(0, 8))
+        ttk.Label(add_panel, text="Time", style="Panel.TLabel").grid(row=3, column=1, sticky="w", pady=(12, 0))
+        ttk.Entry(add_panel, textvariable=self.due_time, width=10).grid(row=4, column=1, sticky="ew", padx=(0, 8))
+        ttk.Label(add_panel, text="Repeats", style="Panel.TLabel").grid(row=3, column=2, sticky="w", pady=(12, 0))
+        ttk.Combobox(add_panel, textvariable=self.recurrence, values=RECURRENCE_OPTIONS, state="readonly", width=12).grid(row=4, column=2, sticky="ew", padx=(0, 8))
+        ttk.Label(add_panel, text="Breakdown detail", style="Panel.TLabel").grid(row=3, column=3, sticky="w", pady=(12, 0))
         self.spice = ttk.Scale(add_panel, from_=1, to=5, orient="horizontal", length=110)
         self.spice.set(3)
-        self.spice.grid(row=1, column=4, sticky="ew", padx=(0, 8))
-        ttk.Button(add_panel, text="Add", command=self.add_task).grid(row=1, column=5, sticky="ew")
+        self.spice.grid(row=4, column=3, sticky="ew", padx=(0, 8))
         add_panel.columnconfigure(0, weight=1)
+        add_panel.columnconfigure(3, weight=1)
 
         toolbar = ttk.Frame(self.content)
-        toolbar.pack(fill="x", pady=(0, 8))
+        toolbar.pack(fill="x", pady=(0, 10))
         for label, command in [
-            ("Complete", self.toggle_selected_complete),
-            ("Rewrite", self.rewrite_selected),
-            ("Break Down", self.breakdown_selected),
-            ("Move Up", lambda: self.move_selected(-1)),
-            ("Move Down", lambda: self.move_selected(1)),
+            ("Done / Undo", self.toggle_selected_complete),
+            ("Edit", self.edit_selected),
+            ("Make Easier", self.rewrite_selected),
+            ("Add Steps", self.breakdown_selected),
+            ("Up", lambda: self.move_selected(-1)),
+            ("Down", lambda: self.move_selected(1)),
             ("Delete", self.delete_selected),
         ]:
             ttk.Button(toolbar, text=label, command=command).pack(side="left", padx=3)
@@ -819,7 +900,7 @@ class MagicTasksApp:
             selectmode="browse",
         )
         self.tree.heading("#0", text="Task")
-        self.tree.column("#0", width=430, anchor="w")
+        self.tree.column("#0", width=560, anchor="w")
         for col, title, width in [
             ("status", "Status", 90),
             ("due", "Due", 160),
@@ -830,11 +911,12 @@ class MagicTasksApp:
         ]:
             self.tree.heading(col, text=title)
             self.tree.column(col, width=width, anchor="w")
+        self.tree["displaycolumns"] = ("status", "due", "estimate")
         self.tree.pack(fill="both", expand=True)
         colors = self.colors()
-        self.tree.tag_configure("high", background=colors["card1"], foreground=colors["button_text"])
-        self.tree.tag_configure("medium", background=colors["card2"], foreground=colors["text"])
-        self.tree.tag_configure("done", background=colors["panel2"], foreground=colors["muted"])
+        self.tree.tag_configure("high", background=colors["high_bg"], foreground=colors["text"])
+        self.tree.tag_configure("medium", background=colors["medium_bg"], foreground=colors["text"])
+        self.tree.tag_configure("done", background=colors["done_bg"], foreground=colors["muted"])
         self.tree.bind("<Double-1>", lambda event: self.edit_selected())
         self.tree.bind("<Button-3>", self.show_task_menu)
         self.populate_task_tree()
@@ -891,6 +973,8 @@ class MagicTasksApp:
         self.task_text.set("")
         self.save_data()
         self.populate_task_tree()
+        if hasattr(self, "task_entry"):
+            self.task_entry.focus_set()
 
     def selected_task(self) -> tuple[dict | None, dict | None, dict | None]:
         selected = self.tree.selection() if hasattr(self, "tree") else ()
@@ -910,8 +994,8 @@ class MagicTasksApp:
             ("Edit", self.edit_selected),
             ("Duplicate", self.duplicate_selected),
             ("Add Subtask", self.add_subtask_dialog),
-            ("Smart Rewrite", self.rewrite_selected),
-            ("Break Down", self.breakdown_selected),
+            ("Make Easier", self.rewrite_selected),
+            ("Add Steps", self.breakdown_selected),
             ("Start Focus", self.focus_selected),
             ("Complete", self.toggle_selected_complete),
             ("Delete", self.delete_selected),
@@ -954,8 +1038,18 @@ class MagicTasksApp:
         if not task:
             return
         previous = task["text"]
-        task["text"] = SmartPlanner.rewrite(task.get("original_text") or task["text"])
-        task["notes"] = f"Previous wording: {previous}\n{task.get('notes', '')}".strip()
+        source = task.get("original_text") or task["text"]
+        plan = SmartPlanner.preview(source, task.get("due_date", ""), 2)
+        task["text"] = plan["rewrite"]
+        helper_note = "\n".join(
+            [
+                f"Made easier from: {previous}",
+                f"Quick start: {plan['next_action']}",
+                f"Minimum win: {plan['minimum_win']}",
+                f"Coach note: {plan['coach_note']}",
+            ]
+        )
+        task["notes"] = f"{helper_note}\n\n{task.get('notes', '')}".strip()
         task["updated_at"] = app_now().isoformat()
         self.save_data()
         self.populate_task_tree()
@@ -1066,7 +1160,8 @@ class MagicTasksApp:
         ttk.Label(frame, text="Repeats").pack(anchor="w")
         ttk.Combobox(frame, textvariable=repeat_var, values=RECURRENCE_OPTIONS, state="readonly").pack(fill="x", pady=(0, 8))
         ttk.Label(frame, text="Notes").pack(anchor="w")
-        notes = Text(frame, height=8, wrap="word")
+        colors = self.colors()
+        notes = Text(frame, height=8, wrap="word", font=UI_FONT, bg=colors["panel"], fg=colors["text"], insertbackground=colors["text"], relief="solid", borderwidth=1)
         notes.insert("1.0", task.get("notes", ""))
         notes.pack(fill="both", expand=True)
 
@@ -1248,7 +1343,8 @@ class MagicTasksApp:
         ttk.Button(controls, text="Next", command=self.next_focus_task).pack(side="left", padx=3)
 
         ttk.Label(right, text="Distraction Capture", style="Panel.TLabel", font=("Segoe UI", 13, "bold")).pack(anchor="w", pady=(0, 8))
-        self.distraction_text = Text(right, height=5, wrap="word")
+        colors = self.colors()
+        self.distraction_text = Text(right, height=5, wrap="word", font=UI_FONT, bg=colors["panel"], fg=colors["text"], insertbackground=colors["text"], relief="solid", borderwidth=1)
         self.distraction_text.pack(fill="x")
         ttk.Button(right, text="Capture", command=self.capture_distraction).pack(anchor="e", pady=6)
         ttk.Label(right, text="Open Tasks", style="Panel.TLabel", font=("Segoe UI", 13, "bold")).pack(anchor="w", pady=(12, 8))
@@ -1391,17 +1487,20 @@ class MagicTasksApp:
         panel.pack(fill="x")
         theme_var = StringVar(value=self.data["settings"].get("theme", DEFAULT_SETTINGS["theme"]))
         compact_var = StringVar(value=str(self.data["settings"].get("compact_rows", False)))
-        motion_var = StringVar(value=str(self.data["settings"].get("reduced_motion", False)))
         plain_var = StringVar(value=str(self.data["settings"].get("plain_background", False)))
-        ttk.Label(panel, text="Theme", style="Panel.TLabel", font=("Segoe UI", 13, "bold")).pack(anchor="w")
+        ttk.Label(panel, text="Theme", style="Section.TLabel").pack(anchor="w")
+        ttk.Label(panel, text="Themes preview right away. Save keeps the change; Cancel restores the old look.", style="Muted.TLabel").pack(anchor="w", pady=(2, 8))
         theme_grid = ttk.Frame(panel, style="Panel.TFrame")
         theme_grid.pack(fill="x", pady=(4, 12))
         for idx, name in enumerate(THEMES.keys()):
-            ttk.Radiobutton(theme_grid, text=name, value=name, variable=theme_var, command=lambda: self.preview_theme(theme_var.get())).grid(row=idx // 3, column=idx % 3, sticky="w", padx=8, pady=4)
-        ttk.Label(panel, text="Display", style="Panel.TLabel", font=("Segoe UI", 13, "bold")).pack(anchor="w")
+            option = ttk.Frame(theme_grid, style="Panel.TFrame", padding=(0, 4))
+            option.grid(row=idx // 2, column=idx % 2, sticky="ew", padx=8, pady=4)
+            ttk.Radiobutton(option, text=name, value=name, variable=theme_var, command=lambda: self.preview_theme(theme_var.get())).pack(anchor="w")
+            ttk.Label(option, text=THEMES[name]["description"], style="Muted.TLabel", wraplength=390).pack(anchor="w", padx=(22, 0))
+            theme_grid.columnconfigure(idx % 2, weight=1)
+        ttk.Label(panel, text="Reading Comfort", style="Section.TLabel").pack(anchor="w")
         for label, var, key in [
-            ("Compact rows", compact_var, "compact_rows"),
-            ("Reduced motion", motion_var, "reduced_motion"),
+            ("Smaller task rows", compact_var, "compact_rows"),
             ("Plain background", plain_var, "plain_background"),
         ]:
             ttk.Checkbutton(panel, text=label, variable=var, onvalue="True", offvalue="False", command=lambda k=key, v=var: self.preview_setting(k, v.get() == "True")).pack(anchor="w", pady=2)

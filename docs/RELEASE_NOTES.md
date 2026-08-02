@@ -1,20 +1,18 @@
-# Rice2k Magic Tasks v3.0.0
+# Rice2k Magic Tasks v3.0.1
 
-Cleaner, more colorful interface refresh focused on readability, easier flow, and friendlier task cards.
+Readability and font polish update for the v3 interface.
 
 ## Highlights
 
-- Redesigned the main task screen with a colorful title panel, cleaner list controls, and a compact add-task area.
-- Replaced the crowded bottom action bars with a simpler **List Tools** menu.
-- Simplified task cards so the always-visible actions are **Done**, **Steps**, **Edit**, and **More**.
-- Added readable task badges for due date, estimate, priority, category, and energy.
-- Added stronger colorful task-card backgrounds while keeping text contrast high.
-- Shortened due-date labels on cards, such as **Today 9:00 AM** and **Aug 10 9:00 AM**.
-- Refreshed the app header with the custom Rice2k Magic Tasks icon.
-- Improved calendar layout with equal week rows and shorter one-line event/task labels.
-- Improved theme consistency for navigation, task cards, calendar cells, popup windows, menus, and form controls.
-- Improved local planning responses for app, website, UI, file, and theme tasks.
-- Updated README screenshots and usage instructions for the new interface.
+- Added a multi-font UI setup with display, body, compact badge, and mono fallbacks.
+- Uses strong heading fonts where available, while keeping body text on readable Windows UI fonts.
+- Added responsive task-title wrapping so long task names stay inside the card.
+- Changed task badges from one long row into a small wrapping grid.
+- Shortened category, energy, task, and calendar labels before they can hit an edge.
+- Made calendar event times shorter, such as **8:30 Planning...**, so cells stay readable.
+- Reduced navigation padding and renamed Dashboard to **Home** in the top bar so all tabs fit at the minimum window size.
+- Updated Help copy to match the cleaner v3 task-card flow.
+- Refreshed README screenshots with longer sample text to verify wrapping.
 
 ## Notes
 

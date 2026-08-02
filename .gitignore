@@ -11,3 +11,4 @@ release/
 .venv/
 tasks.json
 temp-appdata-launch-check/
+work/

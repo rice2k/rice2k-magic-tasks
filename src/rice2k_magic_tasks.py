@@ -22,7 +22,7 @@ from tkinter import font as tkfont
 from tkinter import ttk
 
 APP_NAME = "Rice2k Magic Tasks"
-VERSION = "3.1.0"
+VERSION = "3.2.0"
 APP_DIR = Path(os.getenv("APPDATA", Path.home())) / "Rice2kMagicTasks"
 DATA_FILE = APP_DIR / "tasks.json"
 
@@ -544,7 +544,25 @@ class SmartPlanner:
     category_words = {
         "Home": ["clean", "laundry", "dish", "kitchen", "room", "trash", "house", "closet", "garage", "bed"],
         "Work": ["email", "report", "meeting", "client", "project", "code", "invoice", "presentation", "manager"],
-        "Digital": ["app", "website", "screen", "button", "click", "ui", "gui", "download", "install", "file", "theme"],
+        "Digital": [
+            "app",
+            "website",
+            "screen",
+            "button",
+            "click",
+            "ui",
+            "gui",
+            "download",
+            "install",
+            "file",
+            "theme",
+            "calendar",
+            "tabs",
+            "dropdown",
+            "readable",
+            "clutter",
+            "overwhelm",
+        ],
         "Health": ["doctor", "medicine", "exercise", "walk", "sleep", "appointment", "therapy", "meal", "water"],
         "Errands": ["buy", "store", "pickup", "call", "mail", "bank", "shop", "return", "post office"],
         "Admin": ["form", "file", "paper", "budget", "tax", "bill", "account", "renew", "password"],
@@ -636,6 +654,10 @@ class SmartPlanner:
             ("fix ui", "Make the screen easier to read and use"),
             ("fix gui", "Make the app screen cleaner and more clickable"),
             ("make app easier", "Simplify the app flow so the next action is obvious"),
+            ("task page", "Make the task page calmer, clearer, and easier to use"),
+            ("calendar", "Make the calendar easier to navigate and edit"),
+            ("overwhelming", "Reduce the page to the controls that matter first"),
+            ("clutter", "Group extra controls so the main flow feels calmer"),
         ]
         for needle, replacement in replacements:
             if needle in lower:
@@ -702,6 +724,15 @@ class SmartPlanner:
                 "Try the flow once like a new user",
                 "Save a screenshot and note the next polish pass",
             ]
+            if any(word in lower for word in ["clutter", "cluster", "overwhelm", "too much", "busy"]):
+                general = [
+                    "Name the one action this screen should make easiest",
+                    "Move rarely used controls into one menu or settings area",
+                    "Group related choices together instead of spreading them around",
+                    "Make the primary add/edit action visually louder than helper tools",
+                    "Check the smallest window size for clipped text",
+                    "Test the screen with fresh eyes and remove one more distraction",
+                ]
         elif category == "Health":
             general = [
                 "Confirm the health-related goal",
@@ -772,6 +803,32 @@ class SmartPlanner:
         if energy == "High":
             return "Make the start smaller than your brain thinks it should be."
         return "Aim for progress, not a perfect plan."
+
+    @classmethod
+    def if_stuck(cls, text: str) -> str:
+        category = cls.categorize(text)
+        if category == "Digital":
+            return "Hide one control, rename one confusing label, or test one click path."
+        if category == "Home":
+            return "Set a five-minute timer and touch only the closest visible item."
+        if category == "Work":
+            return "Send yourself or someone else the smallest useful status update."
+        if category == "Admin":
+            return "Open the newest document and look for the first field or decision."
+        return "Shrink it to a two-minute action and stop there if needed."
+
+    @classmethod
+    def clarifying_question(cls, text: str) -> str:
+        category = cls.categorize(text)
+        if category == "Digital":
+            return "What should the user be able to do without thinking?"
+        if category == "Errands":
+            return "What place, item, or phone call is actually needed?"
+        if category == "School":
+            return "What part would count as enough to turn in or review?"
+        if category == "Creative":
+            return "What rough version would be useful even before it is polished?"
+        return "What would make this feel complete enough for today?"
 
     @classmethod
     def minimum_win(cls, text: str) -> str:
@@ -849,6 +906,8 @@ class SmartPlanner:
             "minimum_win": cls.minimum_win(text),
             "finish_line": cls.finish_line(text),
             "blocker_check": cls.blocker_check(text),
+            "if_stuck": cls.if_stuck(text),
+            "clarifying_question": cls.clarifying_question(text),
         }
 
 
@@ -879,6 +938,14 @@ class MagicTasksApp:
         self.drag_calendar_item: tuple[str, str, date] | None = None
         self.tray_icon = None
         self.pending_settings = copy.deepcopy(self.data["settings"])
+        self.add_options_open = False
+        self.add_detail_level = 3
+        self.task_text = StringVar()
+        self.due_date = StringVar()
+        self.due_time = StringVar(value="09:00")
+        self.recurrence = StringVar(value="None")
+        self.search_text = StringVar()
+        self.show_done_var = StringVar(value="False")
 
         self.configure_style()
         self.build_shell()
@@ -1139,9 +1206,13 @@ class MagicTasksApp:
         self.style.configure("Tool.TButton", padding=(8, 5), background=colors["panel"], foreground=colors["text"], font=self.font("small"))
         self.style.configure("TButton", padding=(10, 7), background=colors["panel2"], foreground=colors["text"], font=self.font("body"), borderwidth=1)
         self.style.configure("Nav.TButton", padding=(7, 6), background=colors["accent2"], foreground=colors["text"], font=self.font("small"))
+        self.style.configure("ListTab.TButton", padding=(10, 7), background=colors["panel"], foreground=colors["text"], font=self.font("small_bold"))
+        self.style.configure("ActiveListTab.TButton", padding=(10, 7), background=colors["accent"], foreground=colors["button_text"], font=self.font("small_bold"))
         self.style.map("Accent.TButton", background=[("active", colors["accent3"])], foreground=[("active", colors["button_text"])])
         self.style.map("SmallAccent.TButton", background=[("active", colors["accent3"])], foreground=[("active", colors["button_text"])])
         self.style.map("TButton", background=[("active", colors["accent2"])], foreground=[("active", colors["text"])])
+        self.style.map("ListTab.TButton", background=[("active", colors["accent2"])], foreground=[("active", colors["text"])])
+        self.style.map("ActiveListTab.TButton", background=[("active", colors["accent3"])], foreground=[("active", colors["button_text"])])
         self.style.configure("TCheckbutton", background=display_bg, foreground=colors["text"], font=self.font("body"))
         self.style.configure("TRadiobutton", background=display_bg, foreground=colors["text"], font=self.font("body"))
         self.style.configure("TEntry", fieldbackground=colors["panel"], foreground=colors["text"], padding=7)
@@ -1238,10 +1309,12 @@ class MagicTasksApp:
         plan = SmartPlanner.preview(text, due_date, spice)
         notes = "\n".join(
             [
-                f"Quick start: {plan['next_action']}",
-                f"Minimum win: {plan['minimum_win']}",
+                f"Start here: {plan['next_action']}",
+                f"Small win: {plan['minimum_win']}",
                 f"Done when: {plan['finish_line']}",
-                f"Watch for: {plan['blocker_check']}",
+                f"Check first: {plan['blocker_check']}",
+                f"If stuck: {plan['if_stuck']}",
+                f"Helpful question: {plan['clarifying_question']}",
                 f"Coach note: {plan['coach_note']}",
             ]
         )
@@ -1389,76 +1462,86 @@ class MagicTasksApp:
         ttk.Label(hero_text, text="Turn the messy thing into one clear next step.", style="HeroMuted.TLabel").pack(anchor="w", pady=(3, 0))
         ttk.Button(hero, text="Quick Add", style="Accent.TButton", command=self.quick_add_dialog).pack(side="right")
 
-        controls = self.panel(page, padding=12, style="Toolbar.TFrame")
-        controls.pack(fill="x", pady=(0, 10))
-        controls.columnconfigure(1, weight=1)
-        ttk.Label(controls, text="List", style="Toolbar.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 6))
-        list_names = [item["name"] for item in self.data["lists"]]
-        self.list_var = StringVar(value=self.active_list()["name"])
-        selector = ttk.Combobox(controls, textvariable=self.list_var, values=list_names, state="readonly", width=24)
-        selector.grid(row=0, column=1, sticky="w")
-        selector.bind("<<ComboboxSelected>>", self.on_list_selected)
-        ttk.Button(controls, text="New", style="Tool.TButton", command=self.new_list_dialog).grid(row=0, column=2, sticky="ew", padx=(8, 4))
-        ttk.Button(controls, text="Rename", style="Tool.TButton", command=self.rename_list_dialog).grid(row=0, column=3, sticky="ew", padx=4)
-        ttk.Label(controls, text="Theme", style="Toolbar.TLabel").grid(row=0, column=4, sticky="e", padx=(16, 6))
-        self.quick_theme_var = StringVar(value=self.data["settings"].get("theme", DEFAULT_SETTINGS["theme"]))
-        theme_selector = ttk.Combobox(controls, textvariable=self.quick_theme_var, values=list(THEMES.keys()), state="readonly", width=17)
-        theme_selector.grid(row=0, column=5, sticky="ew")
-        theme_selector.bind("<<ComboboxSelected>>", self.switch_task_theme)
+        list_panel = self.panel(page, padding=12, style="Toolbar.TFrame")
+        list_panel.pack(fill="x", pady=(0, 10))
+        list_top = ttk.Frame(list_panel, style="Toolbar.TFrame")
+        list_top.pack(fill="x")
+        ttk.Label(list_top, text="Task Lists", style="Toolbar.TLabel", font=self.font("small_bold")).pack(side="left")
+        ttk.Button(list_top, text="New List", style="Tool.TButton", command=self.new_list_dialog).pack(side="right", padx=(4, 0))
+        list_tools_button = ttk.Button(list_top, text="List Tools", style="Tool.TButton")
+        list_tools_button.configure(command=lambda b=list_tools_button: self.show_list_tools_menu(b))
+        list_tools_button.pack(side="right", padx=(4, 0))
 
-        ttk.Label(controls, text="Search", style="Toolbar.TLabel").grid(row=1, column=0, sticky="w", padx=(0, 6), pady=(10, 0))
-        self.search_text = StringVar()
-        search_entry = ttk.Entry(controls, textvariable=self.search_text)
-        search_entry.grid(row=1, column=1, columnspan=4, sticky="ew", pady=(10, 0), padx=(0, 10))
+        tab_grid = ttk.Frame(list_panel, style="Toolbar.TFrame")
+        tab_grid.pack(fill="x", pady=(8, 0))
+        for column in range(5):
+            tab_grid.columnconfigure(column, weight=1, uniform="list_tabs")
+        for index, task_list in enumerate(self.data["lists"]):
+            style = "ActiveListTab.TButton" if task_list["id"] == self.active_list_id else "ListTab.TButton"
+            text = compact_label(task_list["name"], 18)
+            button = ttk.Button(tab_grid, text=text, style=style, command=lambda lid=task_list["id"]: self.select_list_by_id(lid))
+            button.grid(row=index // 5, column=index % 5, sticky="ew", padx=3, pady=3)
+
+        search_bar = self.panel(page, padding=10, style="Toolbar.TFrame")
+        search_bar.pack(fill="x", pady=(0, 10))
+        search_bar.columnconfigure(1, weight=1)
+        ttk.Label(search_bar, text="Search", style="Toolbar.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 8))
+        search_entry = ttk.Entry(search_bar, textvariable=self.search_text)
+        search_entry.grid(row=0, column=1, sticky="ew", padx=(0, 10))
         search_entry.bind("<KeyRelease>", lambda _event: self.populate_task_tree())
-        self.show_done_var = StringVar(value="True")
         ttk.Checkbutton(
-            controls,
+            search_bar,
             text="Show completed",
             variable=self.show_done_var,
             onvalue="True",
             offvalue="False",
             command=self.populate_task_tree,
-        ).grid(row=1, column=5, sticky="e", pady=(10, 0))
+        ).grid(row=0, column=2, sticky="e")
 
         add_panel = self.panel(page, padding=16, style="InputPanel.TFrame")
         add_panel.pack(fill="x", pady=(0, 10))
-        self.task_text = StringVar()
-        self.due_date = StringVar()
-        self.due_time = StringVar(value="09:00")
-        self.recurrence = StringVar(value="None")
         add_panel.columnconfigure(0, weight=1)
-        ttk.Label(add_panel, text="Add one thing", style="InputTitle.TLabel").grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 8))
+        add_panel.columnconfigure(1, weight=0)
+        add_panel.columnconfigure(2, weight=0)
+        ttk.Label(add_panel, text="Add one thing", style="InputTitle.TLabel").grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 8))
         self.task_entry = ttk.Entry(add_panel, textvariable=self.task_text, width=70)
         self.task_entry.grid(row=1, column=0, sticky="ew", padx=(0, 10))
-        self.task_entry.insert(0, TASK_PLACEHOLDER)
-        self.task_entry.configure(foreground=self.colors()["muted"])
+        if not self.task_text.get():
+            self.task_entry.insert(0, TASK_PLACEHOLDER)
+            self.task_entry.configure(foreground=self.colors()["muted"])
+        elif self.task_text.get() == TASK_PLACEHOLDER:
+            self.task_entry.configure(foreground=self.colors()["muted"])
+        else:
+            self.task_entry.configure(foreground=self.colors()["text"])
         self.task_entry.bind("<FocusIn>", self.clear_task_placeholder)
         self.task_entry.bind("<FocusOut>", self.restore_task_placeholder)
         self.task_entry.bind("<Return>", lambda _event: self.add_task())
-        ttk.Button(add_panel, text="Add Task", style="Accent.TButton", command=self.add_task).grid(row=1, column=1, sticky="ew")
+        options_label = "Hide Options" if self.add_options_open else "Options"
+        ttk.Button(add_panel, text=options_label, style="Tool.TButton", command=self.toggle_add_options).grid(row=1, column=1, sticky="ew", padx=(0, 8))
+        ttk.Button(add_panel, text="Add Task", style="Accent.TButton", command=self.add_task).grid(row=1, column=2, sticky="ew")
 
-        options = ttk.Frame(add_panel, style="InputPanel.TFrame")
-        options.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(12, 0))
-        options.columnconfigure(1, weight=1)
-        ttk.Label(options, text="Detail", style="InputPanel.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 8))
-        self.spice = ttk.Scale(options, from_=1, to=5, orient="horizontal", length=170)
-        self.spice.set(3)
-        self.spice.grid(row=0, column=1, sticky="ew", padx=(0, 14))
-        ttk.Label(options, text="Due", style="InputPanel.TLabel").grid(row=0, column=2, sticky="w", padx=(0, 6))
-        ttk.Entry(options, textvariable=self.due_date, width=14).grid(row=0, column=3, sticky="ew", padx=(0, 10))
-        ttk.Label(options, text="Time", style="InputPanel.TLabel").grid(row=0, column=4, sticky="w", padx=(0, 6))
-        ttk.Entry(options, textvariable=self.due_time, width=9).grid(row=0, column=5, sticky="ew", padx=(0, 10))
-        ttk.Label(options, text="Repeats", style="InputPanel.TLabel").grid(row=0, column=6, sticky="w", padx=(0, 6))
-        ttk.Combobox(options, textvariable=self.recurrence, values=RECURRENCE_OPTIONS, state="readonly", width=11).grid(row=0, column=7, sticky="ew", padx=(0, 10))
-        ttk.Button(options, text="Templates", style="Tool.TButton", command=self.show_templates).grid(row=0, column=8, sticky="ew")
+        if self.add_options_open:
+            options = ttk.Frame(add_panel, style="InputPanel.TFrame")
+            options.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(12, 0))
+            for column in [1, 3, 5, 7]:
+                options.columnconfigure(column, weight=1)
+            ttk.Label(options, text="Detail", style="InputPanel.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 8))
+            self.spice = ttk.Scale(options, from_=1, to=5, orient="horizontal", length=150, command=self.capture_add_detail_level)
+            self.spice.set(self.add_detail_level)
+            self.spice.grid(row=0, column=1, sticky="ew", padx=(0, 12))
+            ttk.Label(options, text="Due", style="InputPanel.TLabel").grid(row=0, column=2, sticky="w", padx=(0, 6))
+            ttk.Entry(options, textvariable=self.due_date, width=14).grid(row=0, column=3, sticky="ew", padx=(0, 10))
+            ttk.Label(options, text="Time", style="InputPanel.TLabel").grid(row=0, column=4, sticky="w", padx=(0, 6))
+            ttk.Entry(options, textvariable=self.due_time, width=9).grid(row=0, column=5, sticky="ew", padx=(0, 10))
+            ttk.Label(options, text="Repeats", style="InputPanel.TLabel").grid(row=0, column=6, sticky="w", padx=(0, 6))
+            ttk.Combobox(options, textvariable=self.recurrence, values=RECURRENCE_OPTIONS, state="readonly", width=11).grid(row=0, column=7, sticky="ew", padx=(0, 10))
+            ttk.Button(options, text="Templates", style="Tool.TButton", command=self.show_templates).grid(row=0, column=8, sticky="ew")
 
         list_header = ttk.Frame(page)
         list_header.pack(fill="x", pady=(2, 6))
-        ttk.Label(list_header, text="Tasks", style="Title.TLabel", font=(self.font("display")[0], 15, "bold")).pack(side="left")
-        tools_button = ttk.Button(list_header, text="List Tools", style="Tool.TButton")
-        tools_button.configure(command=lambda b=tools_button: self.show_list_tools_menu(b))
-        tools_button.pack(side="right")
+        task_count = len(self.active_list().get("tasks", []))
+        heading = f"{compact_label(self.active_list()['name'], 28)} ({task_count})"
+        ttk.Label(list_header, text=heading, style="Title.TLabel", font=(self.font("display")[0], 15, "bold")).pack(side="left")
 
         list_shell = self.panel(page, padding=0)
         list_shell.pack(fill="both", expand=True)
@@ -1476,6 +1559,10 @@ class MagicTasksApp:
 
     def show_list_tools_menu(self, widget) -> None:
         menu = self.make_menu()
+        self.add_menu_command(menu, "New list", "subtask", self.new_list_dialog)
+        self.add_menu_command(menu, "Rename current list", "edit", self.rename_list_dialog)
+        self.add_menu_command(menu, "Open templates", "menu", self.show_templates)
+        menu.add_separator()
         self.add_menu_command(menu, "Estimate this list", "estimate", self.estimate_current_list)
         self.add_menu_command(menu, "Prioritize this list", "magic", self.prioritize_current_list)
         menu.add_separator()
@@ -1485,6 +1572,24 @@ class MagicTasksApp:
         menu.add_separator()
         self.add_menu_command(menu, "Clear completed", "delete", self.clear_completed_tasks)
         self.popup_menu_for_widget(menu, widget)
+
+    def select_list_by_id(self, list_id: str) -> None:
+        if any(task_list["id"] == list_id for task_list in self.data["lists"]):
+            self.active_list_id = list_id
+            self.selected_task_id = None
+            self.show_tasks()
+
+    def toggle_add_options(self) -> None:
+        self.capture_add_detail_level()
+        self.add_options_open = not self.add_options_open
+        self.show_tasks()
+
+    def capture_add_detail_level(self, value=None) -> None:
+        try:
+            raw = value if value is not None else self.spice.get()
+            self.add_detail_level = max(1, min(5, int(round(float(raw)))))
+        except Exception:
+            self.add_detail_level = max(1, min(5, int(self.add_detail_level or 3)))
 
     def clear_task_placeholder(self, _event=None) -> None:
         if hasattr(self, "task_entry") and self.task_text.get() == TASK_PLACEHOLDER:
@@ -1691,6 +1796,8 @@ class MagicTasksApp:
             self.task_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def on_list_selected(self, _event=None) -> None:
+        if not hasattr(self, "list_var"):
+            return
         selected = self.list_var.get()
         for task_list in self.data["lists"]:
             if task_list["name"] == selected:
@@ -1717,12 +1824,14 @@ class MagicTasksApp:
         if due_date and not parse_date(due_date):
             messagebox.showwarning(APP_NAME, "Use a date like 2026-08-01.")
             return
-        task = self.build_task(text, due_date, self.due_time.get(), self.recurrence.get(), int(round(float(self.spice.get()))))
+        self.capture_add_detail_level()
+        task = self.build_task(text, due_date, self.due_time.get(), self.recurrence.get(), self.add_detail_level)
         self.active_list()["tasks"].append(task)
         self.task_text.set("")
         self.save_data()
         self.populate_task_tree()
         if hasattr(self, "task_entry"):
+            self.task_entry.configure(foreground=self.colors()["text"])
             self.task_entry.focus_set()
 
     def selected_task(self) -> tuple[dict | None, dict | None, dict | None]:
@@ -1959,10 +2068,12 @@ class MagicTasksApp:
         helper_note = "\n".join(
             [
                 f"Made easier from: {previous}",
-                f"Quick start: {plan['next_action']}",
-                f"Minimum win: {plan['minimum_win']}",
+                f"Start here: {plan['next_action']}",
+                f"Small win: {plan['minimum_win']}",
                 f"Done when: {plan['finish_line']}",
-                f"Watch for: {plan['blocker_check']}",
+                f"Check first: {plan['blocker_check']}",
+                f"If stuck: {plan['if_stuck']}",
+                f"Helpful question: {plan['clarifying_question']}",
                 f"Coach note: {plan['coach_note']}",
             ]
         )
@@ -2311,12 +2422,31 @@ class MagicTasksApp:
         page.pack(fill="both", expand=True, padx=34, pady=(0, 4))
         top = self.panel(page, padding=14, style="Hero.TFrame")
         top.pack(fill="x", pady=(0, 10))
-        ttk.Label(top, text="Calendar", style="AppTitle.TLabel", font=self.font("app_title")).pack(side="left")
-        ttk.Label(top, text=self.calendar_month.strftime("%B %Y"), style="HeroMuted.TLabel", font=(self.font("body_bold")[0], 13, "bold")).pack(side="left", padx=16)
+        title_area = ttk.Frame(top, style="Hero.TFrame")
+        title_area.pack(side="left", fill="x", expand=True)
+        ttk.Label(title_area, text="Calendar", style="AppTitle.TLabel", font=self.font("app_title")).pack(anchor="w")
+        ttk.Label(title_area, text=self.calendar_month.strftime("%B %Y"), style="HeroMuted.TLabel", font=(self.font("body_bold")[0], 13, "bold")).pack(anchor="w", pady=(2, 0))
         ttk.Button(top, text="Add Event", style="Accent.TButton", command=lambda: self.show_event_dialog(date.today())).pack(side="right", padx=(8, 0))
-        ttk.Button(top, text="Today", style="Tool.TButton", command=self.show_current_month).pack(side="right", padx=3)
-        ttk.Button(top, text="Next", style="Tool.TButton", command=lambda: self.change_month(1)).pack(side="right", padx=3)
-        ttk.Button(top, text="Previous", style="Tool.TButton", command=lambda: self.change_month(-1)).pack(side="right", padx=3)
+
+        nav = self.panel(page, padding=10, style="Toolbar.TFrame")
+        nav.pack(fill="x", pady=(0, 10))
+        ttk.Button(nav, text="Previous", style="Tool.TButton", command=lambda: self.change_month(-1)).pack(side="left", padx=(0, 4))
+        ttk.Button(nav, text="Today", style="Tool.TButton", command=self.show_current_month).pack(side="left", padx=4)
+        ttk.Button(nav, text="Next", style="Tool.TButton", command=lambda: self.change_month(1)).pack(side="left", padx=4)
+        ttk.Label(nav, text="Jump to", style="Toolbar.TLabel").pack(side="left", padx=(18, 6))
+        month_names = list(calendar.month_name)[1:]
+        self.calendar_month_var = StringVar(value=month_names[self.calendar_month.month - 1])
+        self.calendar_year_var = StringVar(value=str(self.calendar_month.year))
+        month_picker = ttk.Combobox(nav, textvariable=self.calendar_month_var, values=month_names, state="readonly", width=13)
+        month_picker.pack(side="left", padx=(0, 6))
+        current_year = date.today().year
+        first_year = min(current_year - 5, self.calendar_month.year - 2)
+        last_year = max(current_year + 10, self.calendar_month.year + 2)
+        year_picker = ttk.Combobox(nav, textvariable=self.calendar_year_var, values=[str(year) for year in range(first_year, last_year + 1)], state="readonly", width=7)
+        year_picker.pack(side="left", padx=(0, 8))
+        month_picker.bind("<<ComboboxSelected>>", self.jump_calendar_to_selected)
+        year_picker.bind("<<ComboboxSelected>>", self.jump_calendar_to_selected)
+        ttk.Label(nav, text="Double-click day = add. Drag = reschedule.", style="Toolbar.TLabel").pack(side="right")
 
         month = calendar.Calendar(firstweekday=6)
         weeks = month.monthdatescalendar(self.calendar_month.year, self.calendar_month.month)
@@ -2391,6 +2521,17 @@ class MagicTasksApp:
             year += 1
         self.calendar_month = date(year, month, 1)
         self.show_calendar()
+
+    def jump_calendar_to_selected(self, _event=None) -> None:
+        month_names = list(calendar.month_name)
+        try:
+            month = month_names.index(self.calendar_month_var.get())
+            year = int(self.calendar_year_var.get())
+        except (ValueError, AttributeError):
+            return
+        if 1 <= month <= 12:
+            self.calendar_month = date(year, month, 1)
+            self.show_calendar()
 
     def bind_calendar_target(self, widget, day: date) -> None:
         widget.bind("<Double-1>", lambda _event, d=day: self.show_event_dialog(d))
@@ -2771,12 +2912,13 @@ class MagicTasksApp:
 
         ttk.Label(left, text="Quick Start", style="Section.TLabel").pack(anchor="w", pady=(0, 8))
         steps = [
+            "Switch task lists with the tabs at the top of the Tasks page.",
             "Type one messy task into What do you want to get done?",
-            "Use Detail to choose how many steps you want.",
-            "Add a due date, time, or repeat if the task needs one.",
+            "Open Options only when you need detail level, dates, times, repeats, or templates.",
             "Press Add Task. The planner rewrites the task and adds helpful notes.",
             "Use Done, Steps, Edit, and More on each task card.",
             "Right-click any task for more tools like simplify, duplicate, move, focus, and estimate.",
+            "Change themes and reading size from Settings.",
         ]
         for index, text in enumerate(steps, start=1):
             row = ttk.Frame(left, style="Panel.TFrame")

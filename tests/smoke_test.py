@@ -31,12 +31,14 @@ def test_planner_preview():
     assert plan["minimum_win"]
     assert plan["finish_line"]
     assert plan["blocker_check"]
+    assert plan["if_stuck"]
+    assert plan["clarifying_question"]
 
 
 def test_planner_preview_for_digital_tasks():
-    plan = SmartPlanner.preview("fix app ui", "", 4)
+    plan = SmartPlanner.preview("fix cluttered app ui", "", 4)
     assert plan["category"] == "Digital"
-    assert any("primary button" in step for step in plan["steps"])
+    assert any("primary" in step for step in plan["steps"])
     assert "readable" in plan["finish_line"]
 
 

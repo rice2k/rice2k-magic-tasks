@@ -1,17 +1,20 @@
-# Rice2k Magic Tasks v3.1.0
+# Rice2k Magic Tasks v3.2.0
 
-Reading controls and long-text protection update.
+Simpler task flow and faster calendar navigation.
 
 ## Highlights
 
-- Added a **Text size** setting with Compact, Comfort, and Large modes.
-- Text-size previews immediately in Settings and is saved with the rest of the appearance options.
-- Scales body text, headings, buttons, badges, timers, and table rows together.
-- Added long-word protection so pasted links, long IDs, or single huge words can wrap inside task cards.
-- Applied safer display text to task cards, dashboard next actions, focus mode, and reminder popups.
-- Kept the multi-font pairing from v3 while making the sizing easier to adjust.
-- Refreshed screenshots to show the Settings reading controls and long task examples.
-- Added tests for the default text-size setting, calendar labels, and long-word wrapping.
+- Replaced the task-list dropdown with friendly task-list tabs.
+- Removed the duplicate theme picker from the Tasks page so themes live in Settings.
+- Added an **Options** toggle for detail level, due dates, times, repeats, and templates.
+- Hid completed tasks by default to make busy lists easier to read.
+- Moved list management, templates, imports, exports, estimates, and cleanup into one **List Tools** menu.
+- Added calendar month and year pickers for faster jumping.
+- Kept calendar drag-and-drop, day right-click menus, event editing, event duplication, recurrence, and task conversion.
+- Improved planner notes with clearer **Start here**, **Small win**, **Check first**, **If stuck**, and **Helpful question** lines.
+- Added smarter planning steps for cluttered app, website, screen, calendar, tab, and theme work.
+- Refreshed screenshots to show the calmer Tasks page, calendar jump controls, and Settings theme page.
+- Verified every theme across Tasks, Calendar, Dashboard, Focus, Templates, Settings, and Help.
 
 ## Notes
 

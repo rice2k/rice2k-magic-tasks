@@ -16,6 +16,7 @@ from rice2k_magic_tasks import (
     next_recurrence_date,
     normalize_theme_name,
     parse_date,
+    safe_display_text,
 )
 
 
@@ -49,6 +50,7 @@ def test_default_data_shape():
     assert data["templates"]
     assert data["events"] == []
     assert data["settings"]["theme"] == "Classic Web"
+    assert data["settings"]["text_size"] == "Comfort"
 
 
 def test_theme_count_and_names():
@@ -87,6 +89,11 @@ def test_recurring_event_occurrences():
 def test_calendar_labels_stay_short():
     assert calendar_event_text({"start_time": "08:30", "title": "Planning block that has a long name"}) == "8:30 Planning..."
     assert calendar_task_text({"text": "Write a very long project update email"}) == "Write a very lo..."
+
+
+def test_safe_display_text_breaks_long_words():
+    value = safe_display_text("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", chunk=8)
+    assert value == "aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa"
 
 
 def test_icon_assets_exist():

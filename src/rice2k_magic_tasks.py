@@ -22,7 +22,7 @@ from tkinter import font as tkfont
 from tkinter import ttk
 
 APP_NAME = "Rice2k Magic Tasks"
-VERSION = "3.0.1"
+VERSION = "3.1.0"
 APP_DIR = Path(os.getenv("APPDATA", Path.home())) / "Rice2kMagicTasks"
 DATA_FILE = APP_DIR / "tasks.json"
 
@@ -285,6 +285,7 @@ THEME_ALIASES = {
 
 DEFAULT_SETTINGS = {
     "theme": "Classic Web",
+    "text_size": "Comfort",
     "compact_rows": False,
     "reduced_motion": False,
     "plain_background": False,
@@ -302,6 +303,8 @@ FONT_STACKS = {
     "compact": ("Aptos", "Segoe UI", "Arial"),
     "mono": ("Cascadia Mono", "Consolas", "Courier New"),
 }
+TEXT_SIZE_OPTIONS = ["Compact", "Comfort", "Large"]
+TEXT_SIZE_STEPS = {"Compact": -1, "Comfort": 0, "Large": 2}
 
 RECURRENCE_OPTIONS = ["None", "Daily", "Weekdays", "Weekly", "Monthly"]
 
@@ -393,6 +396,24 @@ def compact_label(value: str, limit: int = 34) -> str:
     if len(value) <= limit:
         return value
     return f"{value[: max(0, limit - 3)].rstrip()}..."
+
+
+def safe_display_text(value: str, chunk: int = 24) -> str:
+    """Add soft break spaces inside long tokens so Tk labels can wrap them."""
+    words = []
+    for word in clean_text(value).split(" "):
+        if len(word) <= chunk:
+            words.append(word)
+            continue
+        pieces = []
+        current = word
+        while len(current) > chunk:
+            pieces.append(current[:chunk])
+            current = current[chunk:]
+        if current:
+            pieces.append(current)
+        words.append(" ".join(pieces))
+    return " ".join(words)
 
 
 def short_time_label(value: str | None) -> str:
@@ -897,6 +918,8 @@ class MagicTasksApp:
         for key, value in DEFAULT_SETTINGS.items():
             data["settings"].setdefault(key, value)
         data["settings"]["theme"] = normalize_theme_name(data["settings"].get("theme"))
+        if data["settings"].get("text_size") not in TEXT_SIZE_OPTIONS:
+            data["settings"]["text_size"] = DEFAULT_SETTINGS["text_size"]
         data["events"] = [self.normalize_event(event) for event in data.get("events", []) if isinstance(event, dict)]
         return data
 
@@ -934,20 +957,21 @@ class MagicTasksApp:
         display = self.choose_font_family(FONT_STACKS["display"])
         compact = self.choose_font_family(FONT_STACKS["compact"])
         mono = self.choose_font_family(FONT_STACKS["mono"])
+        step = TEXT_SIZE_STEPS.get(self.data.get("settings", {}).get("text_size"), 0)
         return {
-            "body": (body, 11),
-            "body_bold": (body_bold, 11, "bold"),
-            "small": (compact, 10),
-            "small_bold": (compact, 10, "bold"),
-            "display": (display, 11),
-            "title": (display, 19, "bold"),
-            "app_title": (display, 22, "bold"),
-            "hero": (display, 24, "bold"),
-            "section": (body_bold, 11, "bold"),
-            "badge": (compact, 9),
-            "badge_bold": (compact, 9, "bold"),
-            "timer": (display, 46, "bold"),
-            "mono": (mono, 10),
+            "body": (body, 11 + step),
+            "body_bold": (body_bold, 11 + step, "bold"),
+            "small": (compact, 10 + step),
+            "small_bold": (compact, 10 + step, "bold"),
+            "display": (display, 11 + step),
+            "title": (display, 19 + step, "bold"),
+            "app_title": (display, 22 + step, "bold"),
+            "hero": (display, 24 + step, "bold"),
+            "section": (body_bold, 11 + step, "bold"),
+            "badge": (compact, max(8, 9 + step)),
+            "badge_bold": (compact, max(8, 9 + step), "bold"),
+            "timer": (display, 46 + step * 3, "bold"),
+            "mono": (mono, 10 + step),
         }
 
     def font(self, name: str) -> tuple:
@@ -1043,9 +1067,12 @@ class MagicTasksApp:
     def apply_theme(self, theme_name: str) -> None:
         theme_name = normalize_theme_name(theme_name)
         self.data["settings"]["theme"] = theme_name
+        self.fonts = self.build_fonts()
+        self.root.option_add("*Font", self.font("body"))
         colors = self.colors()
         display_bg = colors["panel"] if self.data["settings"].get("plain_background") else colors["bg"]
-        row_height = 30 if self.data["settings"].get("compact_rows") else 40
+        row_base = 30 if self.data["settings"].get("compact_rows") else 40
+        row_height = row_base + max(0, TEXT_SIZE_STEPS.get(self.data["settings"].get("text_size"), 0)) * 3
         self.root.configure(bg=display_bg)
         self.style.configure(".", background=display_bg, foreground=colors["text"], fieldbackground=colors["panel"], font=self.font("body"))
         self.style.configure("TFrame", background=display_bg)
@@ -1129,7 +1156,7 @@ class MagicTasksApp:
         self.header = ttk.Frame(self.shell, padding=(14, 10), style="Header.TFrame")
         self.header.pack(fill="x", pady=(0, 10))
         brand = ttk.Frame(self.header, style="Header.TFrame")
-        brand.pack(side="left", fill="x", expand=True)
+        brand.pack(fill="x")
         if self.app_icon_small:
             ttk.Label(brand, image=self.app_icon_small, style="Header.TLabel").pack(side="left", padx=(0, 10))
         brand_text = ttk.Frame(brand, style="Header.TFrame")
@@ -1137,7 +1164,7 @@ class MagicTasksApp:
         ttk.Label(brand_text, text=APP_NAME, style="HeaderTitle.TLabel").pack(anchor="w")
         ttk.Label(brand_text, text="Colorful planning for real-life tasks", style="HeaderSub.TLabel").pack(anchor="w")
         self.nav = ttk.Frame(self.header, style="Header.TFrame")
-        self.nav.pack(side="right")
+        self.nav.pack(anchor="e", pady=(8, 0))
         for name, label in [
             ("Dashboard", "Home"),
             ("Tasks", "Tasks"),
@@ -1341,7 +1368,7 @@ class MagicTasksApp:
             row = ttk.Frame(next_box, style="Panel.TFrame")
             row.pack(fill="x", pady=5)
             mark = "Subtask" if parent else task_list["name"]
-            ttk.Label(row, text=task["text"], style="Panel.TLabel", font=self.font("body_bold"), wraplength=300).pack(anchor="w")
+            ttk.Label(row, text=safe_display_text(task["text"]), style="Panel.TLabel", font=self.font("body_bold"), wraplength=300).pack(anchor="w")
             ttk.Label(row, text=f"{mark} | {task.get('estimate', 10)} min | {task.get('energy', 'Medium')} energy", style="Muted.TLabel").pack(anchor="w")
         if not open_tasks:
             ttk.Label(next_box, text="Everything is complete.", style="Panel.TLabel").pack(anchor="w")
@@ -1563,7 +1590,7 @@ class MagicTasksApp:
         text_area = ttk.Frame(card, style=frame_style)
         text_area.pack(side="left", fill="x", expand=True)
         title_font = (self.font("body_bold")[0], 13 if depth == 0 else 12, "bold")
-        title = ttk.Label(text_area, text=task["text"], style=title_style, font=title_font, wraplength=self.task_title_wraplength(depth))
+        title = ttk.Label(text_area, text=safe_display_text(task["text"]), style=title_style, font=title_font, wraplength=self.task_title_wraplength(depth))
         title.pack(anchor="w")
         self.bind_task_clicks(text_area, task["id"])
         self.bind_task_clicks(title, task["id"])
@@ -2579,7 +2606,7 @@ class MagicTasksApp:
             current = open_refs[0][0]
             self.focus_task_id = current["id"]
         if current:
-            ttk.Label(left, text=current["text"], style="Panel.TLabel", font=self.font("app_title"), wraplength=620).pack(anchor="w")
+            ttk.Label(left, text=safe_display_text(current["text"]), style="Panel.TLabel", font=self.font("app_title"), wraplength=620).pack(anchor="w")
             details = f"{current.get('estimate', 10)} min | {current.get('energy', 'Medium')} energy | {current.get('priority', 'Normal')}"
             ttk.Label(left, text=details, style="Muted.TLabel").pack(anchor="w", pady=(4, 20))
         else:
@@ -2796,6 +2823,7 @@ class MagicTasksApp:
         panel = self.panel(self.content)
         panel.pack(fill="x")
         theme_var = StringVar(value=self.data["settings"].get("theme", DEFAULT_SETTINGS["theme"]))
+        text_size_var = StringVar(value=self.data["settings"].get("text_size", DEFAULT_SETTINGS["text_size"]))
         compact_var = StringVar(value=str(self.data["settings"].get("compact_rows", False)))
         plain_var = StringVar(value=str(self.data["settings"].get("plain_background", False)))
         ttk.Label(panel, text="Theme", style="Section.TLabel").pack(anchor="w")
@@ -2809,6 +2837,17 @@ class MagicTasksApp:
             ttk.Label(option, text=THEMES[name]["description"], style="Muted.TLabel", wraplength=390).pack(anchor="w", padx=(22, 0))
             theme_grid.columnconfigure(idx % 2, weight=1)
         ttk.Label(panel, text="Reading Comfort", style="Section.TLabel").pack(anchor="w")
+        size_row = ttk.Frame(panel, style="Panel.TFrame")
+        size_row.pack(fill="x", pady=(4, 8))
+        ttk.Label(size_row, text="Text size", style="Panel.TLabel").pack(side="left", padx=(0, 10))
+        for size in TEXT_SIZE_OPTIONS:
+            ttk.Radiobutton(
+                size_row,
+                text=size,
+                value=size,
+                variable=text_size_var,
+                command=lambda v=text_size_var: self.preview_text_size(v.get()),
+            ).pack(side="left", padx=(0, 10))
         for label, var, key in [
             ("Smaller task rows", compact_var, "compact_rows"),
             ("Plain background", plain_var, "plain_background"),
@@ -2825,6 +2864,12 @@ class MagicTasksApp:
 
     def preview_setting(self, key: str, value: bool) -> None:
         self.data["settings"][key] = value
+        self.apply_theme(self.data["settings"].get("theme", DEFAULT_SETTINGS["theme"]))
+
+    def preview_text_size(self, value: str) -> None:
+        if value not in TEXT_SIZE_OPTIONS:
+            value = DEFAULT_SETTINGS["text_size"]
+        self.data["settings"]["text_size"] = value
         self.apply_theme(self.data["settings"].get("theme", DEFAULT_SETTINGS["theme"]))
 
     def save_settings(self) -> None:
@@ -2875,7 +2920,7 @@ class MagicTasksApp:
         frame = ttk.Frame(win, padding=14)
         frame.pack(fill="both", expand=True)
         ttk.Label(frame, text="Reminder", font=(self.font("display")[0], 16, "bold")).pack(anchor="w")
-        ttk.Label(frame, text=task["text"], wraplength=380).pack(anchor="w", pady=8)
+        ttk.Label(frame, text=safe_display_text(task["text"]), wraplength=380).pack(anchor="w", pady=8)
         ttk.Label(frame, text=f"{task_list['name']} | {due_dt.strftime('%Y-%m-%d %I:%M %p').replace(' 0', ' ')}").pack(anchor="w")
         buttons = ttk.Frame(frame)
         buttons.pack(fill="x", pady=(12, 0))
@@ -2892,7 +2937,7 @@ class MagicTasksApp:
         frame = ttk.Frame(win, padding=14)
         frame.pack(fill="both", expand=True)
         ttk.Label(frame, text="Event Reminder", font=(self.font("display")[0], 16, "bold")).pack(anchor="w")
-        ttk.Label(frame, text=event["title"], wraplength=390).pack(anchor="w", pady=8)
+        ttk.Label(frame, text=safe_display_text(event["title"]), wraplength=390).pack(anchor="w", pady=8)
         ttk.Label(frame, text=f"{event_dt.strftime('%Y-%m-%d %I:%M %p').replace(' 0', ' ')} | {event.get('recurrence', 'None')}").pack(anchor="w")
         buttons = ttk.Frame(frame)
         buttons.pack(fill="x", pady=(12, 0))

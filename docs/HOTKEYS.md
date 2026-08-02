@@ -17,6 +17,7 @@
 | Action | Result |
 | --- | --- |
 | Click a task card | Select the task. |
+| Drag a task card | Reorder it inside the list. |
 | Double-click a task card | Edit the task. |
 | Right-click a task card | Open the full task menu. |
 | Click **Steps** | Break the selected task into subtasks. |
@@ -33,6 +34,7 @@
 | --- | --- |
 | Add a new task | `Ctrl+K` or the task add box. |
 | Change task list | Click a task-list tab. |
+| Reorder tasks | Drag a task card up or down. |
 | Schedule a task | Right-click task, then choose **Schedule**. |
 | Change repeats | Right-click task, then choose **Repeats**. |
 | Jump calendar months | Use the month and year pickers. |

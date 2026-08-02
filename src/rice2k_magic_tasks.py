@@ -22,7 +22,7 @@ from tkinter import font as tkfont
 from tkinter import ttk
 
 APP_NAME = "Rice2k Magic Tasks"
-VERSION = "3.2.0"
+VERSION = "3.3.0"
 APP_DIR = Path(os.getenv("APPDATA", Path.home())) / "Rice2kMagicTasks"
 DATA_FILE = APP_DIR / "tasks.json"
 
@@ -540,6 +540,22 @@ def next_recurrence_date(current: date, recurrence: str) -> date | None:
     return None
 
 
+def reorder_item(items: list[dict], item_id: str, target_id: str, after: bool = False) -> bool:
+    if item_id == target_id:
+        return False
+    source_index = next((index for index, item in enumerate(items) if item.get("id") == item_id), -1)
+    if source_index < 0:
+        return False
+    item = items.pop(source_index)
+    target_index = next((index for index, current in enumerate(items) if current.get("id") == target_id), -1)
+    if target_index < 0:
+        items.insert(source_index, item)
+        return False
+    insert_index = target_index + (1 if after else 0)
+    items.insert(insert_index, item)
+    return True
+
+
 class SmartPlanner:
     category_words = {
         "Home": ["clean", "laundry", "dish", "kitchen", "room", "trash", "house", "closet", "garage", "bed"],
@@ -940,6 +956,11 @@ class MagicTasksApp:
         self.pending_settings = copy.deepcopy(self.data["settings"])
         self.add_options_open = False
         self.add_detail_level = 3
+        self.drag_task_id: str | None = None
+        self.drag_task_start: tuple[int, int] | None = None
+        self.drag_task_active = False
+        self.drag_task_target_id: str | None = None
+        self.drag_task_drop_after = False
         self.task_text = StringVar()
         self.due_date = StringVar()
         self.due_time = StringVar(value="09:00")
@@ -1542,6 +1563,7 @@ class MagicTasksApp:
         task_count = len(self.active_list().get("tasks", []))
         heading = f"{compact_label(self.active_list()['name'], 28)} ({task_count})"
         ttk.Label(list_header, text=heading, style="Title.TLabel", font=(self.font("display")[0], 15, "bold")).pack(side="left")
+        ttk.Label(list_header, text="Drag task cards to reorder.", style="Muted.TLabel").pack(side="right")
 
         list_shell = self.panel(page, padding=0)
         list_shell.pack(fill="both", expand=True)
@@ -1734,6 +1756,7 @@ class MagicTasksApp:
         self.bind_task_clicks(actions, task["id"])
 
         self.task_card_widgets[task["id"]] = {
+            "outer": outer,
             "card": card,
             "text_area": text_area,
             "title": title,
@@ -1744,8 +1767,135 @@ class MagicTasksApp:
         }
 
     def bind_task_clicks(self, widget, task_id: str) -> None:
-        widget.bind("<Button-1>", lambda event, tid=task_id: self.select_task_card(tid))
+        widget.bind("<ButtonPress-1>", lambda event, tid=task_id: self.start_task_drag(event, tid))
+        widget.bind("<B1-Motion>", lambda event, tid=task_id: self.update_task_drag(event, tid))
+        widget.bind("<ButtonRelease-1>", lambda event, tid=task_id: self.finish_task_drag(event, tid))
         widget.bind("<Button-3>", lambda event, tid=task_id: self.show_task_menu(event, tid))
+
+    def start_task_drag(self, event, task_id: str) -> None:
+        self.select_task_card(task_id)
+        self.drag_task_id = task_id
+        self.drag_task_start = (event.x_root, event.y_root)
+        self.drag_task_active = False
+        self.drag_task_target_id = None
+        self.drag_task_drop_after = False
+
+    def update_task_drag(self, event, task_id: str) -> None:
+        if self.drag_task_id != task_id or not self.drag_task_start:
+            return
+        dx = abs(event.x_root - self.drag_task_start[0])
+        dy = abs(event.y_root - self.drag_task_start[1])
+        if not self.drag_task_active and dx + dy < 8:
+            return
+        self.drag_task_active = True
+        try:
+            self.root.configure(cursor="fleur")
+        except Exception:
+            pass
+        self.autoscroll_task_list(event.y_root)
+        target_id, after = self.task_drop_target_from_pointer(event.x_root, event.y_root)
+        self.drag_task_target_id = target_id
+        self.drag_task_drop_after = after
+
+    def finish_task_drag(self, event, task_id: str) -> None:
+        if self.drag_task_id != task_id:
+            self.reset_task_drag()
+            return
+        moved = False
+        if self.drag_task_active:
+            target_id, after = self.task_drop_target_from_pointer(event.x_root, event.y_root)
+            if not target_id:
+                target_id = self.drag_task_target_id
+                after = self.drag_task_drop_after
+            if target_id:
+                moved = self.reorder_task_by_drag(task_id, target_id, after)
+        self.reset_task_drag()
+        if moved:
+            self.selected_task_id = task_id
+            self.save_data()
+            self.populate_task_tree()
+
+    def reset_task_drag(self) -> None:
+        self.drag_task_id = None
+        self.drag_task_start = None
+        self.drag_task_active = False
+        self.drag_task_target_id = None
+        self.drag_task_drop_after = False
+        try:
+            self.root.configure(cursor="")
+        except Exception:
+            pass
+
+    def autoscroll_task_list(self, pointer_y: int) -> None:
+        if not hasattr(self, "task_canvas"):
+            return
+        top = self.task_canvas.winfo_rooty()
+        bottom = top + self.task_canvas.winfo_height()
+        if pointer_y < top + 36:
+            self.task_canvas.yview_scroll(-1, "units")
+        elif pointer_y > bottom - 36:
+            self.task_canvas.yview_scroll(1, "units")
+
+    def task_id_for_widget(self, widget) -> str | None:
+        while widget:
+            for task_id, widgets in getattr(self, "task_card_widgets", {}).items():
+                if widget in widgets.values() or widget in widgets.get("pills", []):
+                    return task_id
+            if widget == self.root:
+                return None
+            widget = getattr(widget, "master", None)
+        return None
+
+    def task_drop_target_from_pointer(self, x_root: int, y_root: int) -> tuple[str | None, bool]:
+        if not self.drag_task_id:
+            return None, False
+        widget = self.root.winfo_containing(x_root, y_root)
+        target_id = self.task_id_for_widget(widget) if widget else None
+        target_id = self.drag_compatible_target(self.drag_task_id, target_id)
+        if not target_id or target_id == self.drag_task_id:
+            return None, False
+        target_card = self.task_card_widgets.get(target_id, {}).get("card")
+        if not target_card:
+            return None, False
+        midpoint = target_card.winfo_rooty() + target_card.winfo_height() / 2
+        return target_id, y_root > midpoint
+
+    def drag_compatible_target(self, source_id: str, target_id: str | None) -> str | None:
+        if not target_id:
+            return None
+        source_items, source_parent = self.task_reorder_scope(source_id)
+        target_items, target_parent = self.task_reorder_scope(target_id)
+        if not source_items or not target_items:
+            return None
+        if source_items is target_items:
+            return target_id
+        if source_parent is None and target_parent:
+            return target_parent
+        return None
+
+    def task_reorder_scope(self, task_id: str) -> tuple[list[dict] | None, str | None]:
+        for task_list in self.data["lists"]:
+            tasks = task_list.setdefault("tasks", [])
+            for task in tasks:
+                if task.get("id") == task_id:
+                    return tasks, None
+                subtasks = task.setdefault("subtasks", [])
+                for subtask in subtasks:
+                    if subtask.get("id") == task_id:
+                        return subtasks, task.get("id")
+        return None, None
+
+    def reorder_task_by_drag(self, task_id: str, target_id: str, after: bool) -> bool:
+        items, _ = self.task_reorder_scope(task_id)
+        target_items, _ = self.task_reorder_scope(target_id)
+        if not items or items is not target_items:
+            return False
+        moved = reorder_item(items, task_id, target_id, after)
+        if moved:
+            task, _, _ = self.find_task(task_id)
+            if task:
+                task["updated_at"] = app_now().isoformat()
+        return moved
 
     def icon_button(self, parent, icon_name: str, text: str, command):
         icon = self.action_icons.get(icon_name)

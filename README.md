@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-3.2.0-e83f8f">
+  <img alt="Version" src="https://img.shields.io/badge/version-3.3.0-e83f8f">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-008bb8">
   <img alt="Themes" src="https://img.shields.io/badge/themes-10-7b4ce3">
   <img alt="Data" src="https://img.shields.io/badge/data-local-24a87a">
@@ -17,9 +17,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-v3.2.0.exe"><strong>Download Windows EXE</strong></a>
+  <a href="https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.3.0/Rice2k-Magic-Tasks-v3.3.0.exe"><strong>Download Windows EXE</strong></a>
   |
-  <a href="https://github.com/rice2k/rice2k-magic-tasks/releases/tag/v3.2.0">Latest Release</a>
+  <a href="https://github.com/rice2k/rice2k-magic-tasks/releases/tag/v3.3.0">Latest Release</a>
   |
   <a href="docs/USAGE.md">How To Use</a>
   |
@@ -32,7 +32,7 @@ Rice2k Magic Tasks is built for real-life task chaos: half-written errands, vagu
 
 | Area | What You Get |
 | --- | --- |
-| Tasks | Task-list tabs, large clickable cards, subtasks, search, completion, notes, categories, priorities, and estimates. |
+| Tasks | Task-list tabs, draggable task cards, subtasks, search, completion, notes, categories, priorities, and estimates. |
 | Planning | Local smart rewriting, smaller steps, "start here" notes, small wins, stuck help, and helpful questions. |
 | Calendar | Month view, events, recurring events, task due dates, drag-and-drop rescheduling, and fast month/year jumping. |
 | Focus | One-task focus mode, 5/15/25 minute timers, next-task flow, and distraction capture. |
@@ -58,14 +58,14 @@ Windows may show a SmartScreen warning because the app is unsigned.
 
 | File | Use |
 | --- | --- |
-| [Rice2k-Magic-Tasks-v3.2.0.exe](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-v3.2.0.exe) | Single-file Windows app. |
-| [Rice2k-Magic-Tasks-v3.2.0.zip](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-v3.2.0.zip) | Release package with EXE, README, notes, and screenshots. |
-| [Rice2k-Magic-Tasks-v3.2.0.sha256](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-v3.2.0.sha256) | Checksum file for verifying downloads. |
-| [Rice2k-Magic-Tasks-Source-v3.2.0.zip](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-Source-v3.2.0.zip) | Source archive. |
+| [Rice2k-Magic-Tasks-v3.3.0.exe](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.3.0/Rice2k-Magic-Tasks-v3.3.0.exe) | Single-file Windows app. |
+| [Rice2k-Magic-Tasks-v3.3.0.zip](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.3.0/Rice2k-Magic-Tasks-v3.3.0.zip) | Release package with EXE, README, notes, and screenshots. |
+| [Rice2k-Magic-Tasks-v3.3.0.sha256](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.3.0/Rice2k-Magic-Tasks-v3.3.0.sha256) | Checksum file for verifying downloads. |
+| [Rice2k-Magic-Tasks-Source-v3.3.0.zip](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.3.0/Rice2k-Magic-Tasks-Source-v3.3.0.zip) | Source archive. |
 
 ## Quick Start
 
-1. Download and open `Rice2k-Magic-Tasks-v3.2.0.exe`.
+1. Download and open `Rice2k-Magic-Tasks-v3.3.0.exe`.
 2. Pick a task-list tab, such as `Today`, `Home`, or `Work`.
 3. Type one messy task into **What do you want to get done?**.
 4. Use **Options** only when you need detail level, due date, time, repeats, or templates.
@@ -94,6 +94,7 @@ More shortcuts and mouse actions: [docs/HOTKEYS.md](docs/HOTKEYS.md)
 | Action | Result |
 | --- | --- |
 | Click a task card | Select the task. |
+| Drag a task card | Reorder it inside the list. |
 | Double-click a task | Edit the task. |
 | Right-click a task | Open the full task menu. |
 | Double-click a calendar day | Add an event on that day. |
@@ -113,6 +114,7 @@ More shortcuts and mouse actions: [docs/HOTKEYS.md](docs/HOTKEYS.md)
 ### Task Management
 
 - Task-list tabs instead of a crowded dropdown.
+- Drag-and-drop task cards for quick reordering.
 - Optional add-task controls so the main page stays calm.
 - Large colorful task cards with due date, estimate, priority, category, and energy badges.
 - Search and completed-task filtering.
@@ -172,7 +174,7 @@ No account is required. The app does not upload task data by default.
 After downloading the EXE or ZIP, compare its SHA-256 hash with the release checksum file.
 
 ```powershell
-Get-FileHash .\Rice2k-Magic-Tasks-v3.2.0.exe -Algorithm SHA256
+Get-FileHash .\Rice2k-Magic-Tasks-v3.3.0.exe -Algorithm SHA256
 ```
 
 ## Run From Source

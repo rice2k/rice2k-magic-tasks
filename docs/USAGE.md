@@ -42,6 +42,8 @@ Each task card has a few main controls:
 
 Right-click a task for the same full menu.
 
+You can also drag task cards up or down to reorder them. Subtasks can be dragged within the same parent task.
+
 ## Full Task Menu
 
 The task menu includes:

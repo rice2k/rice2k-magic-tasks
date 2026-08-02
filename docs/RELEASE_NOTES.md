@@ -1,30 +1,26 @@
-# Rice2k Magic Tasks v3.2.0
+# Rice2k Magic Tasks v3.3.0
 
-Simpler task flow, faster calendar navigation, and a more polished GitHub page.
+Task-card drag-and-drop reordering.
 
 ![Rice2k Magic Tasks banner](https://raw.githubusercontent.com/rice2k/rice2k-magic-tasks/main/docs/screenshots/github-hero.png)
 
 ## Download
 
-- [Windows EXE](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-v3.2.0.exe)
-- [Release ZIP](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-v3.2.0.zip)
-- [Source ZIP](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-Source-v3.2.0.zip)
-- [SHA-256 checksums](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-v3.2.0.sha256)
+- [Windows EXE](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.3.0/Rice2k-Magic-Tasks-v3.3.0.exe)
+- [Release ZIP](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.3.0/Rice2k-Magic-Tasks-v3.3.0.zip)
+- [Source ZIP](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.3.0/Rice2k-Magic-Tasks-Source-v3.3.0.zip)
+- [SHA-256 checksums](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.3.0/Rice2k-Magic-Tasks-v3.3.0.sha256)
 
 ## Highlights
 
-- Replaced the task-list dropdown with friendly task-list tabs.
-- Removed the duplicate theme picker from the Tasks page so themes live in Settings.
-- Added an **Options** toggle for detail level, due dates, times, repeats, and templates.
-- Hid completed tasks by default to make busy lists easier to read.
-- Moved list management, templates, imports, exports, estimates, and cleanup into one **List Tools** menu.
-- Added calendar month and year pickers for faster jumping.
-- Kept calendar drag-and-drop, day right-click menus, event editing, event duplication, recurrence, and task conversion.
-- Improved planner notes with clearer **Start here**, **Small win**, **Check first**, **If stuck**, and **Helpful question** lines.
-- Added smarter planning steps for cluttered app, website, screen, calendar, tab, and theme work.
-- Refreshed screenshots to show the calmer Tasks page, calendar jump controls, and Settings theme page.
-- Added polished GitHub README sections for screenshots, hotkeys, mouse actions, themes, and data storage.
-- Added dedicated docs for [how to use the app](https://github.com/rice2k/rice2k-magic-tasks/blob/main/docs/USAGE.md) and [hotkeys](https://github.com/rice2k/rice2k-magic-tasks/blob/main/docs/HOTKEYS.md).
+- Added drag-and-drop reordering for task cards in the Tasks view.
+- Top-level tasks can be dragged above or below other top-level tasks.
+- Subtasks can be dragged within the same parent task.
+- Added task-list autoscroll while dragging near the top or bottom.
+- Kept **Move up** and **Move down** in the right-click menu for menu users.
+- Added a visible **Drag task cards to reorder** hint on the Tasks page.
+- Added tests for saved before/after reorder behavior.
+- Kept the v3.2 cleaner task tabs, Options toggle, calendar month/year picker, themes, focus mode, templates, and reminders.
 
 ## Screenshots
 
@@ -38,23 +34,25 @@ Simpler task flow, faster calendar navigation, and a more polished GitHub page.
 
 ## Quick Start
 
-1. Open `Rice2k-Magic-Tasks-v3.2.0.exe`.
+1. Open `Rice2k-Magic-Tasks-v3.3.0.exe`.
 2. Pick a task-list tab.
 3. Type one messy task.
 4. Open **Options** only if you need dates, repeats, templates, or detail level.
 5. Press **Add Task**.
 6. Use **Steps**, **Edit**, **More**, or right-click to work with the task.
+7. Drag task cards up or down to reorder them.
 
-## Hotkeys
+## Hotkeys And Mouse
 
-| Shortcut | Action |
+| Shortcut or Action | Result |
 | --- | --- |
 | `Ctrl+K` | Quick add a task. |
 | `Ctrl+T` | Open Tasks. |
 | `Ctrl+D` | Open Dashboard. |
 | `Ctrl+M` | Open Calendar. |
 | `F1` | Open Help. |
-| `Enter` in the add box | Add the typed task. |
+| Drag a task card | Reorder it inside the list. |
+| Drag a calendar task or event | Move it to another day. |
 
 ## Notes
 

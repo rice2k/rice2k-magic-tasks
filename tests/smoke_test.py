@@ -16,6 +16,7 @@ from rice2k_magic_tasks import (
     next_recurrence_date,
     normalize_theme_name,
     parse_date,
+    reorder_item,
     safe_display_text,
 )
 
@@ -96,6 +97,15 @@ def test_calendar_labels_stay_short():
 def test_safe_display_text_breaks_long_words():
     value = safe_display_text("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", chunk=8)
     assert value == "aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa"
+
+
+def test_reorder_item_before_and_after():
+    items = [{"id": "a"}, {"id": "b"}, {"id": "c"}]
+    assert reorder_item(items, "a", "c", after=True)
+    assert [item["id"] for item in items] == ["b", "c", "a"]
+    assert reorder_item(items, "a", "b", after=False)
+    assert [item["id"] for item in items] == ["a", "b", "c"]
+    assert not reorder_item(items, "a", "a", after=True)
 
 
 def test_icon_assets_exist():

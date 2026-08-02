@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-2.8.0-e83f8f">
+  <img alt="Version" src="https://img.shields.io/badge/version-2.9.0-e83f8f">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-008bb8">
   <img alt="Themes" src="https://img.shields.io/badge/themes-10-7b4ce3">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-19a974">
@@ -18,6 +18,8 @@
 ## Screenshots
 
 ![Task list with colorful cards](docs/screenshots/tasks.png)
+
+![Calendar with events and tasks](docs/screenshots/calendar.png)
 
 ![Dashboard view](docs/screenshots/dashboard.png)
 
@@ -29,12 +31,12 @@
 
 Get the latest Windows build from the [Releases](../../releases) page.
 
-The v2.8.0 release includes:
+The v2.9.0 release includes:
 
-- `Rice2k-Magic-Tasks-v2.8.0.exe` - single-file Windows app.
-- `Rice2k-Magic-Tasks-v2.8.0.zip` - release package.
-- `Rice2k-Magic-Tasks-v2.8.0.sha256` - checksum file.
-- `Rice2k-Magic-Tasks-Source-v2.8.0.zip` - source archive.
+- `Rice2k-Magic-Tasks-v2.9.0.exe` - single-file Windows app.
+- `Rice2k-Magic-Tasks-v2.9.0.zip` - release package.
+- `Rice2k-Magic-Tasks-v2.9.0.sha256` - checksum file.
+- `Rice2k-Magic-Tasks-Source-v2.9.0.zip` - source archive.
 
 Windows may show a SmartScreen warning because the app is unsigned.
 
@@ -49,7 +51,7 @@ Windows may show a SmartScreen warning because the app is unsigned.
 
 ## How To Use
 
-1. Open `Rice2k-Magic-Tasks-v2.8.0.exe`.
+1. Open `Rice2k-Magic-Tasks-v2.9.0.exe`.
 2. Type a task into **Add new item**.
 3. Use **Spiciness level** to choose how detailed the breakdown should be.
 4. Add a due date, time, or repeat setting if you want one.
@@ -59,10 +61,12 @@ Windows may show a SmartScreen warning because the app is unsigned.
    - **Edit** changes the task text, notes, due date, reminders, and recurrence.
    - **Add** adds a subtask.
    - **Del** removes the task.
-7. Right-click a task for more actions, including simplify, duplicate, move, estimate, focus, and complete.
-8. Use **Search** or **Show completed** when the list gets long.
-9. Change themes instantly from the task screen or from **Settings**.
-10. Press **F1** for the built-in help page.
+7. Right-click a task for scheduling, repeat settings, priority, category, notes, copy, calendar event creation, focus, and more.
+8. Use **Calendar** to add events, edit events, duplicate events, set recurrence, and create tasks from events.
+9. Drag tasks or events to another calendar day to reschedule them.
+10. Use **Search** or **Show completed** when the list gets long.
+11. Change themes instantly from the task screen or from **Settings**.
+12. Press **F1** for the built-in help page.
 
 ## Shortcuts
 
@@ -109,6 +113,7 @@ Settings also includes smaller task rows and a plain background option for readi
 - Checkbox controls.
 - Labeled icon buttons.
 - Right-click task menu.
+- Right-click submenus for scheduling, recurrence, priority, category, notes, copying, and calendar conversion.
 - Built-in Help page with quick-start steps and shortcuts.
 - Manual editing with notes, due date, due time, reminder timing, and recurrence.
 - Move tasks up or down inside a list.
@@ -119,7 +124,11 @@ Settings also includes smaller task rows and a plain background option for readi
 - In-app reminders while the app is running.
 - Daily, weekday, weekly, and monthly recurring tasks.
 - Automatic creation of the next recurring task after completion.
-- Monthly calendar view.
+- Monthly calendar with tasks and events.
+- Add, edit, duplicate, delete, and repeat calendar events.
+- Drag tasks and events between calendar days to reschedule.
+- Event reminders while the app is running.
+- Calendar right-click menus for day and item actions.
 
 ### Focus
 
@@ -192,7 +201,7 @@ No account is required. The app does not upload task data by default.
 After downloading the EXE or ZIP, compare its SHA-256 hash with the release checksum file.
 
 ```powershell
-Get-FileHash .\Rice2k-Magic-Tasks-v2.8.0.exe -Algorithm SHA256
+Get-FileHash .\Rice2k-Magic-Tasks-v2.9.0.exe -Algorithm SHA256
 ```
 
 ## Project Layout

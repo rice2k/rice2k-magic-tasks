@@ -1,17 +1,18 @@
-# Rice2k Magic Tasks v2.8.0
+# Rice2k Magic Tasks v2.9.0
 
-Help, search, shortcuts, and theme expansion update.
+Calendar events, richer right-click tools, drag rescheduling, and theme consistency update.
 
 ## Highlights
 
-- Added a built-in Help page with quick-start steps, reading tips, shortcuts, and starter tasks.
-- Added keyboard shortcuts for quick add, Tasks, Dashboard, Calendar, and Help.
-- Added task search on the main task screen.
-- Added a Show completed toggle to hide finished tasks when they get distracting.
-- Added two full themes: Mint Fresh and Graphite Calm.
-- Updated the app to ten total themes.
-- Updated README version badges, screenshots, how-to-use steps, and shortcuts.
-- Added a Help screenshot for the GitHub repository page.
+- Added calendar events as first-class saved data.
+- Added Add Event, Edit Event, Duplicate Event, Delete Event, and Create Task From Event tools.
+- Added event recurrence: None, Daily, Weekdays, Weekly, and Monthly.
+- Added event reminders while the app is running.
+- Added calendar right-click menus for days, events, and tasks.
+- Added drag-to-reschedule for calendar events and dated tasks.
+- Expanded task right-click tools with schedule, recurrence, priority, category, notes, copy, calendar conversion, and show-on-calendar actions.
+- Improved themed styling for popup windows, reminders, menus, checkboxes, radio buttons, and calendar labels.
+- Updated screenshots and README instructions for the expanded calendar flow.
 
 ## Notes
 

@@ -21,7 +21,7 @@ from tkinter import Canvas, Menu, PhotoImage, StringVar, Text, Tk, Toplevel, fil
 from tkinter import ttk
 
 APP_NAME = "Rice2k Magic Tasks"
-VERSION = "2.8.0"
+VERSION = "2.9.0"
 APP_DIR = Path(os.getenv("APPDATA", Path.home())) / "Rice2kMagicTasks"
 DATA_FILE = APP_DIR / "tasks.json"
 
@@ -372,6 +372,7 @@ def default_data() -> dict:
         ],
         "templates": copy.deepcopy(BUILTIN_TEMPLATES),
         "distractions": [],
+        "events": [],
     }
 
 
@@ -418,6 +419,34 @@ def due_label(task: dict) -> str:
     if not due_dt:
         return ""
     return due_dt.strftime("%Y-%m-%d %I:%M %p").replace(" 0", " ")
+
+
+def event_time_label(event: dict) -> str:
+    start = clean_text(event.get("start_time", ""))
+    end = clean_text(event.get("end_time", ""))
+    if start and end:
+        return f"{start}-{end}"
+    if start:
+        return start
+    return "Any time"
+
+
+def event_occurs_on(event: dict, day: date) -> bool:
+    start = parse_date(event.get("date"))
+    if not start or day < start:
+        return False
+    recurrence = event.get("recurrence", "None")
+    if recurrence == "None":
+        return day == start
+    if recurrence == "Daily":
+        return True
+    if recurrence == "Weekdays":
+        return day.weekday() < 5
+    if recurrence == "Weekly":
+        return (day - start).days % 7 == 0
+    if recurrence == "Monthly":
+        return day.day == min(start.day, calendar.monthrange(day.year, day.month)[1])
+    return day == start
 
 
 def next_recurrence_date(current: date, recurrence: str) -> date | None:
@@ -750,6 +779,7 @@ class MagicTasksApp:
         self.focus_remaining = 0
         self.focus_running = False
         self.calendar_month = date.today().replace(day=1)
+        self.drag_calendar_item: tuple[str, str, date] | None = None
         self.tray_icon = None
         self.pending_settings = copy.deepcopy(self.data["settings"])
 
@@ -785,11 +815,13 @@ class MagicTasksApp:
         data.setdefault("settings", copy.deepcopy(DEFAULT_SETTINGS))
         data.setdefault("templates", copy.deepcopy(BUILTIN_TEMPLATES))
         data.setdefault("distractions", [])
+        data.setdefault("events", [])
         if not data.get("lists"):
             data["lists"] = default_data()["lists"]
         for key, value in DEFAULT_SETTINGS.items():
             data["settings"].setdefault(key, value)
         data["settings"]["theme"] = normalize_theme_name(data["settings"].get("theme"))
+        data["events"] = [self.normalize_event(event) for event in data.get("events", []) if isinstance(event, dict)]
         return data
 
     def save_payload(self, payload: dict) -> None:
@@ -827,6 +859,57 @@ class MagicTasksApp:
                 except Exception:
                     pass
 
+    def normalize_event(self, event: dict) -> dict:
+        today = date.today().isoformat()
+        title = clean_text(str(event.get("title", ""))) or "Untitled event"
+        event_date = event.get("date") if parse_date(event.get("date")) else today
+        recurrence = event.get("recurrence", "None")
+        if recurrence not in RECURRENCE_OPTIONS:
+            recurrence = "None"
+        try:
+            reminder_minutes = max(0, int(event.get("reminder_minutes", 15) or 15))
+        except (TypeError, ValueError):
+            reminder_minutes = 15
+        return {
+            "id": event.get("id") or make_id("event"),
+            "title": title,
+            "date": event_date,
+            "start_time": clean_text(str(event.get("start_time", "09:00"))) or "09:00",
+            "end_time": clean_text(str(event.get("end_time", "10:00"))) or "10:00",
+            "recurrence": recurrence,
+            "reminder_minutes": reminder_minutes,
+            "notes": str(event.get("notes", "")),
+            "created_at": event.get("created_at") or app_now().isoformat(),
+            "updated_at": event.get("updated_at") or app_now().isoformat(),
+        }
+
+    def theme_popup(self, win: Toplevel) -> None:
+        colors = self.colors()
+        win.configure(bg=colors["bg"])
+        try:
+            if self.app_icon_image:
+                win.iconphoto(True, self.app_icon_image)
+        except Exception:
+            pass
+
+    def make_menu(self, parent=None) -> Menu:
+        colors = self.colors()
+        return Menu(
+            parent or self.root,
+            tearoff=False,
+            bg=colors["panel"],
+            fg=colors["text"],
+            activebackground=colors["accent2"],
+            activeforeground=colors["text"],
+        )
+
+    def add_menu_command(self, menu: Menu, label: str, icon: str | None, command) -> None:
+        icon_image = self.action_icons.get(icon or "")
+        if icon_image:
+            menu.add_command(label=label, image=icon_image, compound="left", command=command)
+        else:
+            menu.add_command(label=label, command=command)
+
     def colors(self) -> dict:
         return THEMES[normalize_theme_name(self.data["settings"].get("theme"))]
 
@@ -856,6 +939,8 @@ class MagicTasksApp:
         self.style.configure("TaskMeta.TLabel", background=colors["panel"], foreground=colors["muted"], font=SMALL_FONT)
         self.style.configure("SelectedMeta.TLabel", background=colors["accent2"], foreground=colors["muted"], font=SMALL_FONT)
         self.style.configure("DoneMeta.TLabel", background=colors["done_bg"], foreground=colors["muted"], font=SMALL_FONT)
+        self.style.configure("Event.TLabel", background=colors["card1"], foreground=colors["card_text"], font=SMALL_FONT, padding=(4, 2))
+        self.style.configure("CalendarTask.TLabel", background=colors["card2"], foreground=colors["card_text"], font=SMALL_FONT, padding=(4, 2))
         self.style.configure("Hero.TLabel", background=colors["hero"], foreground=colors["hero_text"])
         self.style.configure("CardOne.TLabel", background=colors["card1"], foreground=colors["card_text"])
         self.style.configure("CardTwo.TLabel", background=colors["card2"], foreground=colors["card_text"])
@@ -867,6 +952,8 @@ class MagicTasksApp:
         self.style.configure("TButton", padding=(10, 7), background=colors["panel2"], foreground=colors["text"], font=UI_FONT)
         self.style.configure("Nav.TButton", padding=(10, 7), background=colors["accent2"], foreground=colors["text"], font=SMALL_FONT)
         self.style.map("TButton", background=[("active", colors["accent2"])], foreground=[("active", colors["text"])])
+        self.style.configure("TCheckbutton", background=display_bg, foreground=colors["text"], font=UI_FONT)
+        self.style.configure("TRadiobutton", background=display_bg, foreground=colors["text"], font=UI_FONT)
         self.style.configure("TEntry", fieldbackground=colors["panel"], foreground=colors["text"], padding=7)
         self.style.configure("TCombobox", fieldbackground=colors["panel"], foreground=colors["text"], padding=5)
         self.style.configure("Treeview", rowheight=row_height, fieldbackground=colors["panel"], background=colors["panel"], foreground=colors["text"], font=UI_FONT)
@@ -971,6 +1058,36 @@ class MagicTasksApp:
             "updated_at": app_now().isoformat(),
             "subtasks": [],
         }
+
+    def build_event(
+        self,
+        title: str,
+        event_date: str,
+        start_time: str = "09:00",
+        end_time: str = "10:00",
+        recurrence: str = "None",
+        notes: str = "",
+    ) -> dict:
+        return self.normalize_event(
+            {
+                "id": make_id("event"),
+                "title": title,
+                "date": event_date,
+                "start_time": start_time,
+                "end_time": end_time,
+                "recurrence": recurrence,
+                "reminder_minutes": 15,
+                "notes": notes,
+                "created_at": app_now().isoformat(),
+                "updated_at": app_now().isoformat(),
+            }
+        )
+
+    def find_event(self, event_id: str) -> dict | None:
+        for event in self.data.get("events", []):
+            if event.get("id") == event_id:
+                return event
+        return None
 
     def show_dashboard(self) -> None:
         self.clear_content()
@@ -1377,26 +1494,190 @@ class MagicTasksApp:
     def show_task_menu(self, event, task_id: str | None = None) -> None:
         if task_id:
             self.selected_task_id = task_id
-        menu = Menu(self.root, tearoff=False)
-        for label, icon, command in [
-            ("Complete / reopen", "check", self.toggle_selected_complete),
-            ("Break down into steps", "magic", self.breakdown_selected),
-            ("Make easier", "magic", self.rewrite_selected),
-            ("Edit", "edit", self.edit_selected),
-            ("Add subtask", "subtask", self.add_subtask_dialog),
-            ("Estimate", "estimate", self.estimate_selected_task),
-            ("Duplicate", "subtask", self.duplicate_selected),
-            ("Move up", "menu", lambda: self.move_selected(-1)),
-            ("Move down", "menu", lambda: self.move_selected(1)),
-            ("Start Focus", "check", self.focus_selected),
-            ("Delete", "delete", self.delete_selected),
-        ]:
-            icon_image = self.action_icons.get(icon)
-            if icon_image:
-                menu.add_command(label=label, image=icon_image, compound="left", command=command)
-            else:
-                menu.add_command(label=label, command=command)
+        menu = self.make_menu()
+        self.add_menu_command(menu, "Complete / reopen", "check", self.toggle_selected_complete)
+        self.add_menu_command(menu, "Edit task", "edit", self.edit_selected)
+        self.add_menu_command(menu, "Add note", "edit", self.add_note_dialog)
+        self.add_menu_command(menu, "Add subtask", "subtask", self.add_subtask_dialog)
+        menu.add_separator()
+        self.add_menu_command(menu, "Break down into steps", "magic", self.breakdown_selected)
+        self.add_menu_command(menu, "Make easier", "magic", self.rewrite_selected)
+        self.add_menu_command(menu, "Estimate", "estimate", self.estimate_selected_task)
+
+        schedule_menu = self.make_menu(menu)
+        for label, days in [("Today", 0), ("Tomorrow", 1), ("Next week", 7)]:
+            schedule_menu.add_command(label=label, command=lambda d=days: self.set_selected_due_in_days(d))
+        schedule_menu.add_command(label="Custom schedule...", command=self.schedule_selected_dialog)
+        menu.add_cascade(label="Schedule", menu=schedule_menu)
+
+        recurrence_menu = self.make_menu(menu)
+        for recurrence in RECURRENCE_OPTIONS:
+            recurrence_menu.add_command(label=recurrence, command=lambda value=recurrence: self.set_selected_recurrence(value))
+        menu.add_cascade(label="Repeats", menu=recurrence_menu)
+
+        priority_menu = self.make_menu(menu)
+        for priority in ["High", "Medium", "Normal"]:
+            priority_menu.add_command(label=priority, command=lambda value=priority: self.set_selected_priority(value))
+        menu.add_cascade(label="Priority", menu=priority_menu)
+
+        category_menu = self.make_menu(menu)
+        for category in ["General", *SmartPlanner.category_words.keys()]:
+            category_menu.add_command(label=category, command=lambda value=category: self.set_selected_category(value))
+        menu.add_cascade(label="Category", menu=category_menu)
+
+        menu.add_separator()
+        self.add_menu_command(menu, "Create calendar event", "estimate", self.create_event_from_selected)
+        self.add_menu_command(menu, "Show on calendar", "menu", self.show_selected_on_calendar)
+        self.add_menu_command(menu, "Copy Markdown", "menu", self.copy_selected_task_markdown)
+        self.add_menu_command(menu, "Duplicate", "subtask", self.duplicate_selected)
+        self.add_menu_command(menu, "Move up", "menu", lambda: self.move_selected(-1))
+        self.add_menu_command(menu, "Move down", "menu", lambda: self.move_selected(1))
+        self.add_menu_command(menu, "Start Focus", "check", self.focus_selected)
+        menu.add_separator()
+        self.add_menu_command(menu, "Delete", "delete", self.delete_selected)
         menu.tk_popup(event.x_root, event.y_root)
+
+    def set_selected_due_in_days(self, days: int) -> None:
+        task, _, _ = self.selected_task()
+        if not task:
+            return
+        target = date.today() + timedelta(days=days)
+        task["due_date"] = target.isoformat()
+        task["due_time"] = task.get("due_time") or "09:00"
+        task["priority"] = SmartPlanner.priority(task["text"], task.get("due_date"))
+        task["updated_at"] = app_now().isoformat()
+        self.save_data()
+        self.refresh_current_view()
+
+    def schedule_selected_dialog(self) -> None:
+        task, _, _ = self.selected_task()
+        if not task:
+            return
+        win = Toplevel(self.root)
+        win.title("Schedule Task")
+        win.geometry("430x260")
+        win.transient(self.root)
+        win.grab_set()
+        self.theme_popup(win)
+        frame = ttk.Frame(win, padding=14)
+        frame.pack(fill="both", expand=True)
+        due_var = StringVar(value=task.get("due_date", ""))
+        time_var = StringVar(value=task.get("due_time", "09:00"))
+        repeat_var = StringVar(value=task.get("recurrence", "None"))
+        reminder_var = StringVar(value=str(task.get("reminder_minutes", 15)))
+        for label, var in [("Due date", due_var), ("Time", time_var), ("Reminder minutes", reminder_var)]:
+            ttk.Label(frame, text=label).pack(anchor="w")
+            ttk.Entry(frame, textvariable=var).pack(fill="x", pady=(0, 8))
+        ttk.Label(frame, text="Repeats").pack(anchor="w")
+        ttk.Combobox(frame, textvariable=repeat_var, values=RECURRENCE_OPTIONS, state="readonly").pack(fill="x")
+
+        def save_schedule() -> None:
+            if due_var.get() and not parse_date(due_var.get()):
+                messagebox.showwarning(APP_NAME, "Use a date like 2026-08-01.")
+                return
+            task["due_date"] = due_var.get().strip()
+            task["due_time"] = time_var.get().strip()
+            task["recurrence"] = repeat_var.get()
+            try:
+                task["reminder_minutes"] = max(0, int(reminder_var.get()))
+            except ValueError:
+                task["reminder_minutes"] = 15
+            task["priority"] = SmartPlanner.priority(task["text"], task.get("due_date"))
+            task["updated_at"] = app_now().isoformat()
+            self.save_data()
+            win.destroy()
+            self.refresh_current_view()
+
+        buttons = ttk.Frame(frame)
+        buttons.pack(fill="x", pady=(12, 0))
+        ttk.Button(buttons, text="Save", command=save_schedule).pack(side="right")
+        ttk.Button(buttons, text="Cancel", command=win.destroy).pack(side="right", padx=4)
+
+    def set_selected_recurrence(self, recurrence: str) -> None:
+        task, _, _ = self.selected_task()
+        if not task:
+            return
+        task["recurrence"] = recurrence
+        task["updated_at"] = app_now().isoformat()
+        self.save_data()
+        self.refresh_current_view()
+
+    def set_selected_priority(self, priority: str) -> None:
+        task, _, _ = self.selected_task()
+        if not task:
+            return
+        task["priority"] = priority
+        task["updated_at"] = app_now().isoformat()
+        self.save_data()
+        self.refresh_current_view()
+
+    def set_selected_category(self, category: str) -> None:
+        task, _, _ = self.selected_task()
+        if not task:
+            return
+        task["category"] = category
+        task["updated_at"] = app_now().isoformat()
+        self.save_data()
+        self.refresh_current_view()
+
+    def add_note_dialog(self) -> None:
+        task, _, _ = self.selected_task()
+        if not task:
+            return
+        self.simple_input("Add Note", "Note", lambda value: self.append_note_to_selected(value))
+
+    def append_note_to_selected(self, value: str) -> None:
+        task, _, _ = self.selected_task()
+        value = clean_text(value)
+        if not task or not value:
+            return
+        task["notes"] = f"{task.get('notes', '').strip()}\n\nNote: {value}".strip()
+        task["updated_at"] = app_now().isoformat()
+        self.save_data()
+        self.refresh_current_view()
+
+    def copy_selected_task_markdown(self) -> None:
+        task, _, _ = self.selected_task()
+        if not task:
+            return
+        checked = "x" if task.get("completed") else " "
+        due = f" due {due_label(task)}" if due_label(task) else ""
+        self.root.clipboard_clear()
+        self.root.clipboard_append(f"- [{checked}] {task.get('text', 'Untitled task')}{due}")
+        messagebox.showinfo(APP_NAME, "Task copied as Markdown.")
+
+    def create_event_from_selected(self) -> None:
+        task, _, _ = self.selected_task()
+        if not task:
+            return
+        event = self.build_event(
+            title=task.get("text", "Task"),
+            event_date=task.get("due_date") or date.today().isoformat(),
+            start_time=task.get("due_time") or "09:00",
+            recurrence=task.get("recurrence", "None"),
+            notes=task.get("notes", ""),
+        )
+        self.data.setdefault("events", []).append(event)
+        self.save_data()
+        self.calendar_month = parse_date(event["date"]).replace(day=1)
+        self.show_calendar()
+
+    def show_selected_on_calendar(self) -> None:
+        task, _, _ = self.selected_task()
+        if not task:
+            return
+        due = parse_date(task.get("due_date"))
+        if due:
+            self.calendar_month = due.replace(day=1)
+        self.show_calendar()
+
+    def refresh_current_view(self) -> None:
+        if self.current_view == "Calendar":
+            self.show_calendar()
+        elif self.current_view == "Tasks":
+            self.populate_task_tree()
+        else:
+            self.route(self.current_view)
 
     def toggle_selected_complete(self) -> None:
         task, task_list, parent = self.selected_task()
@@ -1539,6 +1820,7 @@ class MagicTasksApp:
         win.geometry("520x470")
         win.transient(self.root)
         win.grab_set()
+        self.theme_popup(win)
         frame = ttk.Frame(win, padding=14)
         frame.pack(fill="both", expand=True)
         text_var = StringVar(value=task.get("text", ""))
@@ -1741,6 +2023,7 @@ class MagicTasksApp:
         win.geometry("420x130")
         win.transient(self.root)
         win.grab_set()
+        self.theme_popup(win)
         frame = ttk.Frame(win, padding=14)
         frame.pack(fill="both", expand=True)
         value = StringVar()
@@ -1788,36 +2071,65 @@ class MagicTasksApp:
         top = ttk.Frame(self.content)
         top.pack(fill="x", pady=(0, 8))
         ttk.Label(top, text="Calendar", style="Title.TLabel").pack(side="left")
+        ttk.Button(top, text="Add Event", style="Accent.TButton", command=lambda: self.show_event_dialog(date.today())).pack(side="right", padx=3)
+        ttk.Button(top, text="Today", command=self.show_current_month).pack(side="right", padx=3)
         ttk.Button(top, text="Previous", command=lambda: self.change_month(-1)).pack(side="right", padx=3)
         ttk.Button(top, text="Next", command=lambda: self.change_month(1)).pack(side="right", padx=3)
         ttk.Label(top, text=self.calendar_month.strftime("%B %Y"), font=("Segoe UI", 13, "bold")).pack(side="right", padx=16)
 
         month = calendar.Calendar(firstweekday=6)
+        weeks = month.monthdatescalendar(self.calendar_month.year, self.calendar_month.month)
+        visible_days = [day for week in weeks for day in week]
         grid = ttk.Frame(self.content)
         grid.pack(fill="both", expand=True)
         for i, name in enumerate(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]):
             ttk.Label(grid, text=name, anchor="center", font=("Segoe UI", 10, "bold")).grid(row=0, column=i, sticky="ew", padx=2, pady=2)
             grid.columnconfigure(i, weight=1)
+
         tasks_by_day: dict[date, list[dict]] = {}
         for task, _, _ in self.all_task_refs(include_completed=False):
             due = parse_date(task.get("due_date"))
             if due:
                 tasks_by_day.setdefault(due, []).append(task)
-        for row_idx, week in enumerate(month.monthdatescalendar(self.calendar_month.year, self.calendar_month.month), start=1):
+
+        events_by_day: dict[date, list[dict]] = {}
+        for event in self.data.get("events", []):
+            for day in visible_days:
+                if event_occurs_on(event, day):
+                    events_by_day.setdefault(day, []).append(event)
+
+        for row_idx, week in enumerate(weeks, start=1):
             grid.rowconfigure(row_idx, weight=1)
             for col_idx, day in enumerate(week):
                 cell = self.panel(grid, padding=8)
                 cell.grid(row=row_idx, column=col_idx, sticky="nsew", padx=2, pady=2)
+                self.bind_calendar_target(cell, day)
                 label_style = "Panel.TLabel"
                 day_text = str(day.day)
                 if day.month != self.calendar_month.month:
                     day_text = f"({day.day})"
-                ttk.Label(cell, text=day_text, style=label_style, font=("Segoe UI", 10, "bold")).pack(anchor="w")
-                for task in tasks_by_day.get(day, [])[:4]:
-                    ttk.Label(cell, text=task["text"], style="Muted.TLabel", wraplength=130).pack(anchor="w")
-                extra = len(tasks_by_day.get(day, [])) - 4
+                day_label = ttk.Label(cell, text=day_text, style=label_style, font=("Segoe UI", 10, "bold"))
+                day_label.pack(anchor="w")
+                self.bind_calendar_target(day_label, day)
+
+                shown = 0
+                for event_item in events_by_day.get(day, [])[:3]:
+                    label = ttk.Label(cell, text=f"{event_time_label(event_item)}  {event_item['title']}", style="Event.TLabel", wraplength=135)
+                    label.pack(anchor="w", fill="x", pady=1)
+                    self.bind_calendar_item(label, "event", event_item["id"], day)
+                    shown += 1
+                for task in tasks_by_day.get(day, [])[: max(0, 5 - shown)]:
+                    label = ttk.Label(cell, text=f"Task: {task['text']}", style="CalendarTask.TLabel", wraplength=135)
+                    label.pack(anchor="w", fill="x", pady=1)
+                    self.bind_calendar_item(label, "task", task["id"], day)
+                    shown += 1
+                extra = len(events_by_day.get(day, [])) + len(tasks_by_day.get(day, [])) - shown
                 if extra > 0:
                     ttk.Label(cell, text=f"+{extra} more", style="Muted.TLabel").pack(anchor="w")
+
+    def show_current_month(self) -> None:
+        self.calendar_month = date.today().replace(day=1)
+        self.show_calendar()
 
     def change_month(self, delta: int) -> None:
         month = self.calendar_month.month + delta
@@ -1829,6 +2141,202 @@ class MagicTasksApp:
             month = 1
             year += 1
         self.calendar_month = date(year, month, 1)
+        self.show_calendar()
+
+    def bind_calendar_target(self, widget, day: date) -> None:
+        widget.bind("<Double-1>", lambda _event, d=day: self.show_event_dialog(d))
+        widget.bind("<Button-3>", lambda event, d=day: self.show_calendar_day_menu(event, d))
+        widget.bind("<ButtonRelease-1>", lambda _event, d=day: self.drop_calendar_item(d))
+
+    def bind_calendar_item(self, widget, kind: str, item_id: str, day: date) -> None:
+        widget.bind("<ButtonPress-1>", lambda _event, k=kind, iid=item_id, d=day: self.start_calendar_drag(k, iid, d))
+        widget.bind("<ButtonRelease-1>", lambda _event, d=day: self.drop_calendar_item(d))
+        widget.bind("<Double-1>", lambda _event, k=kind, iid=item_id, d=day: self.open_calendar_item(k, iid, d))
+        widget.bind("<Button-3>", lambda event, k=kind, iid=item_id, d=day: self.show_calendar_item_menu(event, k, iid, d))
+
+    def start_calendar_drag(self, kind: str, item_id: str, origin_day: date) -> None:
+        self.drag_calendar_item = (kind, item_id, origin_day)
+
+    def drop_calendar_item(self, target_day: date) -> None:
+        if not self.drag_calendar_item:
+            return
+        kind, item_id, origin_day = self.drag_calendar_item
+        self.drag_calendar_item = None
+        if target_day == origin_day:
+            return
+        if kind == "task":
+            task, _, _ = self.find_task(item_id)
+            if task:
+                task["due_date"] = target_day.isoformat()
+                task["due_time"] = task.get("due_time") or "09:00"
+                task["updated_at"] = app_now().isoformat()
+                self.save_data()
+                self.show_calendar()
+        elif kind == "event":
+            event = self.find_event(item_id)
+            if event:
+                event["date"] = target_day.isoformat()
+                event["updated_at"] = app_now().isoformat()
+                self.save_data()
+                self.show_calendar()
+
+    def open_calendar_item(self, kind: str, item_id: str, day: date) -> None:
+        if kind == "event":
+            self.show_event_dialog(day, item_id)
+            return
+        self.selected_task_id = item_id
+        self.edit_selected()
+
+    def show_calendar_day_menu(self, event, day: date) -> None:
+        menu = self.make_menu()
+        menu.add_command(label=f"Add event on {day.isoformat()}", command=lambda d=day: self.show_event_dialog(d))
+        menu.add_command(label=f"Add task due {day.isoformat()}", command=lambda d=day: self.quick_add_due_dialog(d))
+        menu.add_command(label="Jump to today", command=self.show_current_month)
+        menu.tk_popup(event.x_root, event.y_root)
+
+    def show_calendar_item_menu(self, event, kind: str, item_id: str, day: date) -> None:
+        if kind == "task":
+            self.selected_task_id = item_id
+            self.show_task_menu(event, item_id)
+            return
+        self.show_event_menu(event, item_id, day)
+
+    def quick_add_due_dialog(self, day: date) -> None:
+        self.simple_input("Add Task", f"Task due {day.isoformat()}", lambda value, d=day: self.quick_add_due(value, d))
+
+    def quick_add_due(self, value: str, day: date) -> None:
+        value = clean_text(value)
+        if not value:
+            return
+        self.active_list()["tasks"].append(self.build_task(value, day.isoformat(), "09:00"))
+        self.save_data()
+        self.show_calendar()
+
+    def show_event_menu(self, event, event_id: str, day: date) -> None:
+        menu = self.make_menu()
+        self.add_menu_command(menu, "Edit event", "edit", lambda eid=event_id, d=day: self.show_event_dialog(d, eid))
+        self.add_menu_command(menu, "Duplicate event", "subtask", lambda eid=event_id: self.duplicate_event(eid))
+        self.add_menu_command(menu, "Create task from event", "check", lambda eid=event_id: self.create_task_from_event(eid))
+        repeats = self.make_menu(menu)
+        for recurrence in RECURRENCE_OPTIONS:
+            repeats.add_command(label=recurrence, command=lambda value=recurrence, eid=event_id: self.set_event_recurrence(eid, value))
+        menu.add_cascade(label="Repeats", menu=repeats)
+        menu.add_separator()
+        self.add_menu_command(menu, "Delete event", "delete", lambda eid=event_id: self.delete_event(eid))
+        menu.tk_popup(event.x_root, event.y_root)
+
+    def show_event_dialog(self, event_date: date | None = None, event_id: str | None = None) -> None:
+        existing = self.find_event(event_id) if event_id else None
+        win = Toplevel(self.root)
+        win.title("Edit Event" if existing else "Add Event")
+        win.geometry("520x430")
+        win.transient(self.root)
+        win.grab_set()
+        self.theme_popup(win)
+        frame = ttk.Frame(win, padding=14)
+        frame.pack(fill="both", expand=True)
+        title_var = StringVar(value=existing.get("title", "") if existing else "")
+        date_var = StringVar(value=existing.get("date", "") if existing else (event_date or date.today()).isoformat())
+        start_var = StringVar(value=existing.get("start_time", "09:00") if existing else "09:00")
+        end_var = StringVar(value=existing.get("end_time", "10:00") if existing else "10:00")
+        repeat_var = StringVar(value=existing.get("recurrence", "None") if existing else "None")
+        reminder_var = StringVar(value=str(existing.get("reminder_minutes", 15)) if existing else "15")
+
+        ttk.Label(frame, text="Title").pack(anchor="w")
+        ttk.Entry(frame, textvariable=title_var).pack(fill="x", pady=(0, 8))
+        row = ttk.Frame(frame)
+        row.pack(fill="x", pady=(0, 8))
+        for label, var, width in [("Date", date_var, 14), ("Start", start_var, 10), ("End", end_var, 10), ("Reminder", reminder_var, 8)]:
+            box = ttk.Frame(row)
+            box.pack(side="left", padx=(0, 8))
+            ttk.Label(box, text=label).pack(anchor="w")
+            ttk.Entry(box, textvariable=var, width=width).pack()
+        ttk.Label(frame, text="Repeats").pack(anchor="w")
+        ttk.Combobox(frame, textvariable=repeat_var, values=RECURRENCE_OPTIONS, state="readonly").pack(fill="x", pady=(0, 8))
+        ttk.Label(frame, text="Notes").pack(anchor="w")
+        colors = self.colors()
+        notes = Text(frame, height=8, wrap="word", font=UI_FONT, bg=colors["panel"], fg=colors["text"], insertbackground=colors["text"], relief="solid", borderwidth=1)
+        notes.insert("1.0", existing.get("notes", "") if existing else "")
+        notes.pack(fill="both", expand=True)
+
+        def save_event() -> None:
+            title = clean_text(title_var.get())
+            if not title:
+                messagebox.showinfo(APP_NAME, "Enter an event title.")
+                return
+            if not parse_date(date_var.get()):
+                messagebox.showwarning(APP_NAME, "Use a date like 2026-08-01.")
+                return
+            try:
+                reminder = max(0, int(reminder_var.get()))
+            except ValueError:
+                reminder = 15
+            payload = self.normalize_event(
+                {
+                    "id": existing.get("id") if existing else make_id("event"),
+                    "title": title,
+                    "date": parse_date(date_var.get()).isoformat(),
+                    "start_time": start_var.get(),
+                    "end_time": end_var.get(),
+                    "recurrence": repeat_var.get(),
+                    "reminder_minutes": reminder,
+                    "notes": notes.get("1.0", "end").strip(),
+                    "created_at": existing.get("created_at") if existing else app_now().isoformat(),
+                    "updated_at": app_now().isoformat(),
+                }
+            )
+            if existing:
+                existing.update(payload)
+            else:
+                self.data.setdefault("events", []).append(payload)
+            self.calendar_month = parse_date(payload["date"]).replace(day=1)
+            self.save_data()
+            win.destroy()
+            self.show_calendar()
+
+        buttons = ttk.Frame(frame)
+        buttons.pack(fill="x", pady=(10, 0))
+        ttk.Button(buttons, text="Save Event", command=save_event).pack(side="right")
+        ttk.Button(buttons, text="Cancel", command=win.destroy).pack(side="right", padx=4)
+
+    def duplicate_event(self, event_id: str) -> None:
+        event = self.find_event(event_id)
+        if not event:
+            return
+        clone = copy.deepcopy(event)
+        clone["id"] = make_id("event")
+        clone["title"] = f"{clone.get('title', 'Event')} copy"
+        clone["created_at"] = app_now().isoformat()
+        clone["updated_at"] = app_now().isoformat()
+        self.data.setdefault("events", []).append(clone)
+        self.save_data()
+        self.show_calendar()
+
+    def set_event_recurrence(self, event_id: str, recurrence: str) -> None:
+        event = self.find_event(event_id)
+        if not event:
+            return
+        event["recurrence"] = recurrence
+        event["updated_at"] = app_now().isoformat()
+        self.save_data()
+        self.show_calendar()
+
+    def create_task_from_event(self, event_id: str) -> None:
+        event = self.find_event(event_id)
+        if not event:
+            return
+        self.active_list()["tasks"].append(self.build_task(event.get("title", "Event"), event.get("date", ""), event.get("start_time", "09:00"), event.get("recurrence", "None")))
+        self.save_data()
+        self.show_calendar()
+
+    def delete_event(self, event_id: str) -> None:
+        event = self.find_event(event_id)
+        if not event:
+            return
+        if not messagebox.askyesno(APP_NAME, "Delete this calendar event?"):
+            return
+        self.data["events"] = [item for item in self.data.get("events", []) if item.get("id") != event_id]
+        self.save_data()
         self.show_calendar()
 
     def show_focus(self) -> None:
@@ -2120,6 +2628,19 @@ class MagicTasksApp:
             if alert_at <= now <= due_dt + timedelta(hours=12):
                 self.reminder_seen.add(key)
                 self.show_reminder(task, task_list, due_dt)
+        for event in self.data.get("events", []):
+            event_day = now.date() if event_occurs_on(event, now.date()) else parse_date(event.get("date"))
+            event_dt = parse_datetime(event_day.isoformat() if event_day else "", event.get("start_time"))
+            if not event_dt:
+                continue
+            reminder = int(event.get("reminder_minutes", 15))
+            alert_at = event_dt - timedelta(minutes=reminder)
+            key = f"event:{event['id']}:{event_day}:{event.get('start_time')}"
+            if key in self.reminder_seen:
+                continue
+            if alert_at <= now <= event_dt + timedelta(hours=12):
+                self.reminder_seen.add(key)
+                self.show_event_reminder(event, event_dt)
         self.root.after(30000, self.check_reminders)
 
     def show_reminder(self, task: dict, task_list: dict, due_dt: datetime) -> None:
@@ -2128,6 +2649,7 @@ class MagicTasksApp:
         win.title("Reminder")
         win.geometry("420x180")
         win.attributes("-topmost", True)
+        self.theme_popup(win)
         frame = ttk.Frame(win, padding=14)
         frame.pack(fill="both", expand=True)
         ttk.Label(frame, text="Reminder", font=("Segoe UI", 16, "bold")).pack(anchor="w")
@@ -2136,6 +2658,23 @@ class MagicTasksApp:
         buttons = ttk.Frame(frame)
         buttons.pack(fill="x", pady=(12, 0))
         ttk.Button(buttons, text="Open", command=lambda: (win.destroy(), self.root.deiconify(), self.select_focus_task(task["id"]))).pack(side="right")
+        ttk.Button(buttons, text="Dismiss", command=win.destroy).pack(side="right", padx=4)
+
+    def show_event_reminder(self, event: dict, event_dt: datetime) -> None:
+        self.root.bell()
+        win = Toplevel(self.root)
+        win.title("Event Reminder")
+        win.geometry("430x190")
+        win.attributes("-topmost", True)
+        self.theme_popup(win)
+        frame = ttk.Frame(win, padding=14)
+        frame.pack(fill="both", expand=True)
+        ttk.Label(frame, text="Event Reminder", font=("Segoe UI", 16, "bold")).pack(anchor="w")
+        ttk.Label(frame, text=event["title"], wraplength=390).pack(anchor="w", pady=8)
+        ttk.Label(frame, text=f"{event_dt.strftime('%Y-%m-%d %I:%M %p').replace(' 0', ' ')} | {event.get('recurrence', 'None')}").pack(anchor="w")
+        buttons = ttk.Frame(frame)
+        buttons.pack(fill="x", pady=(12, 0))
+        ttk.Button(buttons, text="Open Calendar", command=lambda: (win.destroy(), self.root.deiconify(), self.show_calendar())).pack(side="right")
         ttk.Button(buttons, text="Dismiss", command=win.destroy).pack(side="right", padx=4)
 
     def setup_tray(self) -> None:

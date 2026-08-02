@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from rice2k_magic_tasks import ICON_ICO, ICON_PNG, SmartPlanner, THEMES, default_data, next_recurrence_date, normalize_theme_name, parse_date
+from rice2k_magic_tasks import ICON_ICO, ICON_PNG, SmartPlanner, THEMES, default_data, event_occurs_on, next_recurrence_date, normalize_theme_name, parse_date
 
 
 def test_planner_preview():
@@ -28,6 +28,7 @@ def test_default_data_shape():
     data = default_data()
     assert data["lists"]
     assert data["templates"]
+    assert data["events"] == []
     assert data["settings"]["theme"] == "Classic Web"
 
 
@@ -55,6 +56,13 @@ def test_old_theme_names_migrate():
     assert normalize_theme_name("Clean Blue") == "Ocean Glow"
     assert normalize_theme_name("Mint") == "Mint Fresh"
     assert normalize_theme_name("Graphite") == "Graphite Calm"
+
+
+def test_recurring_event_occurrences():
+    event = {"date": "2026-08-01", "recurrence": "Weekly"}
+    assert event_occurs_on(event, parse_date("2026-08-01"))
+    assert event_occurs_on(event, parse_date("2026-08-08"))
+    assert not event_occurs_on(event, parse_date("2026-08-09"))
 
 
 def test_icon_assets_exist():

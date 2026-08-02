@@ -1,6 +1,15 @@
 # Rice2k Magic Tasks v3.2.0
 
-Simpler task flow and faster calendar navigation.
+Simpler task flow, faster calendar navigation, and a more polished GitHub page.
+
+![Rice2k Magic Tasks banner](https://raw.githubusercontent.com/rice2k/rice2k-magic-tasks/main/docs/screenshots/github-hero.png)
+
+## Download
+
+- [Windows EXE](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-v3.2.0.exe)
+- [Release ZIP](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-v3.2.0.zip)
+- [Source ZIP](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-Source-v3.2.0.zip)
+- [SHA-256 checksums](https://github.com/rice2k/rice2k-magic-tasks/releases/download/v3.2.0/Rice2k-Magic-Tasks-v3.2.0.sha256)
 
 ## Highlights
 
@@ -14,7 +23,38 @@ Simpler task flow and faster calendar navigation.
 - Improved planner notes with clearer **Start here**, **Small win**, **Check first**, **If stuck**, and **Helpful question** lines.
 - Added smarter planning steps for cluttered app, website, screen, calendar, tab, and theme work.
 - Refreshed screenshots to show the calmer Tasks page, calendar jump controls, and Settings theme page.
-- Verified every theme across Tasks, Calendar, Dashboard, Focus, Templates, Settings, and Help.
+- Added polished GitHub README sections for screenshots, hotkeys, mouse actions, themes, and data storage.
+- Added dedicated docs for [how to use the app](https://github.com/rice2k/rice2k-magic-tasks/blob/main/docs/USAGE.md) and [hotkeys](https://github.com/rice2k/rice2k-magic-tasks/blob/main/docs/HOTKEYS.md).
+
+## Screenshots
+
+| Tasks | Calendar |
+| --- | --- |
+| ![Tasks](https://raw.githubusercontent.com/rice2k/rice2k-magic-tasks/main/docs/screenshots/tasks.png) | ![Calendar](https://raw.githubusercontent.com/rice2k/rice2k-magic-tasks/main/docs/screenshots/calendar.png) |
+
+| Dashboard | Settings |
+| --- | --- |
+| ![Dashboard](https://raw.githubusercontent.com/rice2k/rice2k-magic-tasks/main/docs/screenshots/dashboard.png) | ![Settings](https://raw.githubusercontent.com/rice2k/rice2k-magic-tasks/main/docs/screenshots/themes.png) |
+
+## Quick Start
+
+1. Open `Rice2k-Magic-Tasks-v3.2.0.exe`.
+2. Pick a task-list tab.
+3. Type one messy task.
+4. Open **Options** only if you need dates, repeats, templates, or detail level.
+5. Press **Add Task**.
+6. Use **Steps**, **Edit**, **More**, or right-click to work with the task.
+
+## Hotkeys
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl+K` | Quick add a task. |
+| `Ctrl+T` | Open Tasks. |
+| `Ctrl+D` | Open Dashboard. |
+| `Ctrl+M` | Open Calendar. |
+| `F1` | Open Help. |
+| `Enter` in the add box | Add the typed task. |
 
 ## Notes
 

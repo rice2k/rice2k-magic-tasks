@@ -20,6 +20,13 @@ def test_planner_preview():
     assert plan["blocker_check"]
 
 
+def test_planner_preview_for_digital_tasks():
+    plan = SmartPlanner.preview("fix app ui", "", 4)
+    assert plan["category"] == "Digital"
+    assert any("primary button" in step for step in plan["steps"])
+    assert "readable" in plan["finish_line"]
+
+
 def test_recurrence_weekdays():
     assert str(next_recurrence_date(parse_date("2026-07-31"), "Weekdays")) == "2026-08-03"
 

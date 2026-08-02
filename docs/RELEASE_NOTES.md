@@ -1,18 +1,20 @@
-# Rice2k Magic Tasks v2.9.0
+# Rice2k Magic Tasks v3.0.0
 
-Calendar events, richer right-click tools, drag rescheduling, and theme consistency update.
+Cleaner, more colorful interface refresh focused on readability, easier flow, and friendlier task cards.
 
 ## Highlights
 
-- Added calendar events as first-class saved data.
-- Added Add Event, Edit Event, Duplicate Event, Delete Event, and Create Task From Event tools.
-- Added event recurrence: None, Daily, Weekdays, Weekly, and Monthly.
-- Added event reminders while the app is running.
-- Added calendar right-click menus for days, events, and tasks.
-- Added drag-to-reschedule for calendar events and dated tasks.
-- Expanded task right-click tools with schedule, recurrence, priority, category, notes, copy, calendar conversion, and show-on-calendar actions.
-- Improved themed styling for popup windows, reminders, menus, checkboxes, radio buttons, and calendar labels.
-- Updated screenshots and README instructions for the expanded calendar flow.
+- Redesigned the main task screen with a colorful title panel, cleaner list controls, and a compact add-task area.
+- Replaced the crowded bottom action bars with a simpler **List Tools** menu.
+- Simplified task cards so the always-visible actions are **Done**, **Steps**, **Edit**, and **More**.
+- Added readable task badges for due date, estimate, priority, category, and energy.
+- Added stronger colorful task-card backgrounds while keeping text contrast high.
+- Shortened due-date labels on cards, such as **Today 9:00 AM** and **Aug 10 9:00 AM**.
+- Refreshed the app header with the custom Rice2k Magic Tasks icon.
+- Improved calendar layout with equal week rows and shorter one-line event/task labels.
+- Improved theme consistency for navigation, task cards, calendar cells, popup windows, menus, and form controls.
+- Improved local planning responses for app, website, UI, file, and theme tasks.
+- Updated README screenshots and usage instructions for the new interface.
 
 ## Notes
 

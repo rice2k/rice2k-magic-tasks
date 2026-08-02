@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-2.9.0-e83f8f">
+  <img alt="Version" src="https://img.shields.io/badge/version-3.0.0-e83f8f">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-008bb8">
   <img alt="Themes" src="https://img.shields.io/badge/themes-10-7b4ce3">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-19a974">
@@ -31,12 +31,12 @@
 
 Get the latest Windows build from the [Releases](../../releases) page.
 
-The v2.9.0 release includes:
+The v3.0.0 release includes:
 
-- `Rice2k-Magic-Tasks-v2.9.0.exe` - single-file Windows app.
-- `Rice2k-Magic-Tasks-v2.9.0.zip` - release package.
-- `Rice2k-Magic-Tasks-v2.9.0.sha256` - checksum file.
-- `Rice2k-Magic-Tasks-Source-v2.9.0.zip` - source archive.
+- `Rice2k-Magic-Tasks-v3.0.0.exe` - single-file Windows app.
+- `Rice2k-Magic-Tasks-v3.0.0.zip` - release package.
+- `Rice2k-Magic-Tasks-v3.0.0.sha256` - checksum file.
+- `Rice2k-Magic-Tasks-Source-v3.0.0.zip` - source archive.
 
 Windows may show a SmartScreen warning because the app is unsigned.
 
@@ -51,17 +51,16 @@ Windows may show a SmartScreen warning because the app is unsigned.
 
 ## How To Use
 
-1. Open `Rice2k-Magic-Tasks-v2.9.0.exe`.
-2. Type a task into **Add new item**.
-3. Use **Spiciness level** to choose how detailed the breakdown should be.
+1. Open `Rice2k-Magic-Tasks-v3.0.0.exe`.
+2. Type a task into **What do you want to get done?**.
+3. Use **Detail** to choose how small the suggested steps should be.
 4. Add a due date, time, or repeat setting if you want one.
-5. Press **Add**.
+5. Press **Add Task**.
 6. Use the task buttons:
    - **Steps** breaks the task into subtasks.
    - **Edit** changes the task text, notes, due date, reminders, and recurrence.
-   - **Add** adds a subtask.
-   - **Del** removes the task.
-7. Right-click a task for scheduling, repeat settings, priority, category, notes, copy, calendar event creation, focus, and more.
+   - **More** opens the full task menu with scheduling, subtasks, copy, focus, and delete tools.
+7. Right-click a task for the same full menu.
 8. Use **Calendar** to add events, edit events, duplicate events, set recurrence, and create tasks from events.
 9. Drag tasks or events to another calendar day to reschedule them.
 10. Use **Search** or **Show completed** when the list gets long.
@@ -100,6 +99,7 @@ Settings also includes smaller task rows and a plain background option for readi
 ### Smart Planning
 
 - Local planner for task rewriting, breakdowns, estimates, categories, energy levels, and priorities.
+- Better planning for app, website, UI, file, and theme tasks.
 - Richer guidance for vague tasks with **Done when** and **Watch for** notes.
 - More useful subtasks for home, work, health, errands, admin, school, creative, and email tasks.
 
@@ -108,10 +108,13 @@ Settings also includes smaller task rows and a plain background option for readi
 - Multiple named task lists.
 - Nested subtasks.
 - Large clickable task cards.
+- Cleaner task page with fewer always-visible buttons.
+- Colorful task cards with readable due date, estimate, priority, category, and energy badges.
 - Colored priority stripes.
 - Search and completed-task filtering.
 - Checkbox controls.
 - Labeled icon buttons.
+- Compact **List Tools** menu for export, import, estimate, prioritize, and cleanup actions.
 - Right-click task menu.
 - Right-click submenus for scheduling, recurrence, priority, category, notes, copying, and calendar conversion.
 - Built-in Help page with quick-start steps and shortcuts.
@@ -125,6 +128,7 @@ Settings also includes smaller task rows and a plain background option for readi
 - Daily, weekday, weekly, and monthly recurring tasks.
 - Automatic creation of the next recurring task after completion.
 - Monthly calendar with tasks and events.
+- Cleaner calendar grid with equal week rows and shorter readable event labels.
 - Add, edit, duplicate, delete, and repeat calendar events.
 - Drag tasks and events between calendar days to reschedule.
 - Event reminders while the app is running.
@@ -201,7 +205,7 @@ No account is required. The app does not upload task data by default.
 After downloading the EXE or ZIP, compare its SHA-256 hash with the release checksum file.
 
 ```powershell
-Get-FileHash .\Rice2k-Magic-Tasks-v2.9.0.exe -Algorithm SHA256
+Get-FileHash .\Rice2k-Magic-Tasks-v3.0.0.exe -Algorithm SHA256
 ```
 
 ## Project Layout
